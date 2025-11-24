@@ -30,11 +30,13 @@ export default function NewWorkspacePage() {
 
     if (error) {
       console.error('Error creating workspace:', error)
+      alert(`Erro ao criar workspace: ${error.message}`)
       setLoading(false)
       return
     }
 
     router.push('/')
+    router.refresh()
   }
 
   return (

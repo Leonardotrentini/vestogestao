@@ -2,26 +2,28 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Group, Item, Column } from '@/types'
-import GroupList from './GroupList'
+import { Group, Item, Column } from '@/supabase/migrations/types'
+import BoardTable from './BoardTable'
+import BoardKanbanView from './BoardKanbanView'
 import BoardHeader from './BoardHeader'
 
 interface BoardViewProps {
   boardId: string
   workspaceId: string
+  boardName?: string
 }
 
-export default function BoardView({ boardId, workspaceId }: BoardViewProps) {
+export default function BoardView({ boardId, workspaceId, boardName }: BoardViewProps) {
   const [groups, setGroups] = useState<Group[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [columns, setColumns] = useState<Column[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
   const supabase = createClient()
 
   useEffect(() => {
     loadData()
     
-    // Subscribe to changes
     const groupsChannel = supabase
       .channel('groups')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'groups', filter: `board_id=eq.${boardId}` }, () => {
@@ -43,21 +45,18 @@ export default function BoardView({ boardId, workspaceId }: BoardViewProps) {
   }, [boardId])
 
   const loadData = async () => {
-    // Load groups
     const { data: groupsData } = await supabase
       .from('groups')
       .select('*')
       .eq('board_id', boardId)
       .order('position', { ascending: true })
 
-    // Load items
     const { data: itemsData } = await supabase
       .from('items')
       .select('*')
       .in('group_id', groupsData?.map(g => g.id) || [])
       .order('position', { ascending: true })
 
-    // Load columns
     const { data: columnsData } = await supabase
       .from('columns')
       .select('*')
@@ -104,23 +103,41 @@ export default function BoardView({ boardId, workspaceId }: BoardViewProps) {
   }
 
   if (loading) {
-    return <div className="p-8">Carregando...</div>
+    return <div className="p-8 text-gray-600">Carregando...</div>
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <BoardHeader boardId={boardId} workspaceId={workspaceId} onCreateGroup={handleCreateGroup} />
-      <div className="flex-1 overflow-x-auto">
-        <GroupList
-          groups={groups}
-          items={items}
-          columns={columns}
-          onToggleGroup={handleToggleGroup}
-          onCreateItem={handleCreateItem}
-          boardId={boardId}
-        />
+    <div className="flex flex-col min-h-screen bg-white">
+      <BoardHeader 
+        boardName={boardName} 
+        onCreateGroup={handleCreateGroup}
+        boardId={boardId}
+        workspaceId={workspaceId}
+        columns={columns}
+        onColumnsChange={loadData}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
+      <div className="flex-1">
+        {viewMode === 'table' ? (
+          <BoardTable
+            groups={groups}
+            items={items}
+            columns={columns}
+            onToggleGroup={handleToggleGroup}
+            onCreateItem={handleCreateItem}
+            boardId={boardId}
+          />
+        ) : (
+          <BoardKanbanView
+            groups={groups}
+            items={items}
+            columns={columns}
+            onCreateItem={handleCreateItem}
+            boardId={boardId}
+          />
+        )}
       </div>
     </div>
   )
 }
-

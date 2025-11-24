@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import BoardView from "@/components/board/BoardView"
+import Sidebar from "@/components/layout/Sidebar"
 
 export default async function BoardPage({
   params,
@@ -28,6 +29,13 @@ export default async function BoardPage({
     )
   }
 
-  return <BoardView boardId={boardId} workspaceId={workspaceId} />
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar workspaceId={workspaceId} currentBoardId={boardId} />
+      <div className="flex-1 flex flex-col min-w-0 ml-64">
+        <BoardView boardId={boardId} workspaceId={workspaceId} boardName={board.name} />
+      </div>
+    </div>
+  )
 }
 

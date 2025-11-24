@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User } from '@/types'
+import { User } from '@/supabase/migrations/types'
 import { ChevronDown } from 'lucide-react'
 
 interface PersonCellProps {

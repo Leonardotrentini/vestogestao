@@ -56,6 +56,9 @@ export type ColumnType =
   | 'number'
   | 'checkbox'
   | 'time_tracking'
+  | 'currency'
+  | 'link'
+  | 'long_text'
 
 export interface Column {
   id: string
