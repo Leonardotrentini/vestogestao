@@ -21,18 +21,20 @@ export default function BoardTable({
   boardId,
 }: BoardTableProps) {
   return (
-    <div className="w-full">
-      {groups.map((group) => (
-        <GroupSection
-          key={group.id}
-          group={group}
-          items={items.filter((item) => item.group_id === group.id)}
-          columns={columns}
-          onToggle={onToggleGroup}
-          onCreateItem={onCreateItem}
-          boardId={boardId}
-        />
-      ))}
+    <div className="w-full h-full overflow-x-auto overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(199,157,69,0.3) rgba(26,42,29,0.5)' }}>
+      <div className="min-w-max">
+        {groups.map((group) => (
+          <GroupSection
+            key={group.id}
+            group={group}
+            items={items.filter((item) => item.group_id === group.id)}
+            columns={columns}
+            onToggle={onToggleGroup}
+            onCreateItem={onCreateItem}
+            boardId={boardId}
+          />
+        ))}
+      </div>
     </div>
   )
 }

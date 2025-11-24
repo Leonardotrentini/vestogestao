@@ -36,14 +36,14 @@ export default function KanbanColumn({ group, items, columns, onCreateItem, boar
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-w-[280px] max-w-[320px] bg-gray-100 rounded-lg p-3 transition-colors ${
-        isOver ? 'bg-blue-50 ring-2 ring-blue-500' : ''
+      className={`flex-1 min-w-[280px] max-w-[320px] bg-secondary rounded-lg p-3 transition-colors ${
+        isOver ? 'bg-accent ring-2 ring-primary' : ''
       }`}
     >
       {/* Header da Coluna */}
       <div className="mb-3">
-        <h3 className="font-semibold text-gray-900 mb-1">{group.name}</h3>
-        <span className="text-xs text-gray-500">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
+        <h3 className="font-semibold text-foreground mb-1">{group.name}</h3>
+        <span className="text-xs text-muted-foreground">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
       </div>
 
       {/* Lista de Itens */}
@@ -62,19 +62,19 @@ export default function KanbanColumn({ group, items, columns, onCreateItem, boar
 
         {/* Formulário de Criar Item */}
         {showItemInput ? (
-          <form onSubmit={handleCreateItem} className="bg-white rounded-lg p-3 border border-blue-500">
+          <form onSubmit={handleCreateItem} className="bg-background rounded-lg p-3 border border-primary">
             <input
               type="text"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               placeholder="Nome do item"
-              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
+              className="w-full px-2 py-1 border border-border bg-background text-foreground rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary mb-2"
               autoFocus
             />
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="flex-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                className="flex-1 px-3 py-1 bg-primary text-primary-foreground rounded text-sm hover:opacity-90 transition-opacity"
               >
                 Adicionar
               </button>
@@ -84,7 +84,7 @@ export default function KanbanColumn({ group, items, columns, onCreateItem, boar
                   setShowItemInput(false)
                   setItemName('')
                 }}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                className="px-3 py-1 bg-muted text-muted-foreground rounded text-sm hover:bg-accent"
               >
                 Cancelar
               </button>
@@ -93,7 +93,7 @@ export default function KanbanColumn({ group, items, columns, onCreateItem, boar
         ) : (
           <button
             onClick={() => setShowItemInput(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg text-sm transition-colors"
           >
             <Plus size={16} />
             <span>Adicionar item</span>

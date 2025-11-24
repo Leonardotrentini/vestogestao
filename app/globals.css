@@ -2,14 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import './dashboard-theme.css';
+
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --border: 214.3 31.8% 91.4%;
+  /* Paleta de cores principal - Dashboard Style */
+  --primary-color: #C79D45;
+  --primary-hover: #D4AD5F;
+  --primary-light: rgba(199, 157, 69, 0.15);
+  
+  --secondary-color: #212F23;
+  --secondary-light: #2A3D2E;
+  
+  --background-color: #0F1711;
+  --background-secondary: #1A2A1D;
+  --background-tertiary: #212F23;
+  
+  --highlight-color: #ffffff;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(26, 42, 29, 0.7);
+  --glass-border: rgba(199, 157, 69, 0.2);
+  --glass-hover: rgba(26, 42, 29, 0.85);
+  
+  /* Tipografia */
+  --font-main: 'Playfair Display', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* CSS Variables para compatibilidade */
+  --background: 150 25% 7%;
+  --foreground: 0 0% 98%;
+  --primary: 38 62% 53%;
+  --primary-foreground: 150 25% 7%;
+  --secondary: 140 15% 17%;
+  --secondary-foreground: 0 0% 98%;
+  --border: 38 30% 30%;
+  --card: 150 20% 12%;
+  --card-foreground: 0 0% 98%;
+  --muted: 140 15% 17%;
+  --muted-foreground: 0 0% 70%;
+  --accent: 140 15% 17%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
 }
 
 * {
@@ -17,7 +55,139 @@
 }
 
 body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  color: var(--text-primary);
+  background: var(--background-color);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(199, 157, 69, 0.08) 0%, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(33, 47, 35, 0.2) 0%, transparent 50%);
+  background-attachment: fixed;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Logo com fundo transparente */
+.logo-container {
+  background: transparent !important;
+}
+
+.logo-container * {
+  background: transparent !important;
+}
+
+.logo-image,
+.logo-container img,
+.logo-container image {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Se a imagem ainda tiver fundo branco, tentar remover com filtro */
+.logo-container img[src*="appsemfundo"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  /* Opcional: remover branco com mix-blend-mode se necessário */
+  /* mix-blend-mode: multiply; */
+}
+
+/* Regra específica para o menu dropdown da sidebar - fundo escuro sólido */
+.sidebar-menu-dropdown {
+  background-color: #1A2A1D !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  z-index: 99999 !important;
+  position: absolute !important;
+}
+
+/* Scrollbar customizada para o tema escuro */
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(26, 42, 29, 0.5);
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(199, 157, 69, 0.3);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(199, 157, 69, 0.5);
+}
+
+/* Estilos para select com tema escuro */
+select {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+select option {
+  background-color: #1A2A1D !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+
+.sidebar-menu-dropdown * {
+  background-color: transparent !important;
+}
+
+/* Regra importante: inputs com fundo branco sempre têm texto preto */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  /* Quando tem bg-white, força texto preto */
+}
+
+input.bg-white,
+textarea.bg-white,
+select.bg-white {
+  color: #0F1711 !important;
+  background-color: #ffffff !important;
+}
+
+
+
+/* Forçar texto branco em inputs */
+input, textarea {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
 

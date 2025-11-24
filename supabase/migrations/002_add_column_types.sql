@@ -22,3 +22,4 @@ CHECK (type IN (
 -- Comentários para documentação
 COMMENT ON COLUMN columns.type IS 'Tipo de coluna: text, status, person, priority, date, number, checkbox, time_tracking, currency, link, long_text';
 
+

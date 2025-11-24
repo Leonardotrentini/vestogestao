@@ -154,3 +154,4 @@ CREATE TRIGGER update_columns_updated_at BEFORE UPDATE ON columns FOR EACH ROW E
 CREATE TRIGGER update_column_values_updated_at BEFORE UPDATE ON column_values FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+

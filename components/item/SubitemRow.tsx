@@ -5,15 +5,18 @@ import { createClient } from '@/lib/supabase/client'
 import { Subitem, Column } from '@/supabase/migrations/types'
 import { MessageCircle } from 'lucide-react'
 import ColumnCell from '../column/ColumnCell'
+import { getColumnWidth } from '@/lib/column-utils'
 
 interface SubitemRowProps {
   subitem: Subitem
   columns: Column[]
   boardId: string
   onUpdate: () => void
+  onOpenItemModal?: () => void
+  columnWidths?: Record<string, number>
 }
 
-export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpenItemModal }: SubitemRowProps) {
+export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpenItemModal, columnWidths }: SubitemRowProps) {
   const [columnValues, setColumnValues] = useState<Record<string, any>>({})
   const [commentsCount, setCommentsCount] = useState(0)
   const supabase = createClient()
@@ -82,9 +85,9 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
   }
 
   return (
-    <div className="flex border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <div className="flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors">
       {/* Checkbox */}
-      <div className="w-8 px-2 py-2 flex items-center border-r border-gray-200">
+      <div className="w-8 flex-shrink-0 px-2 py-2 flex items-center border-r border-[rgba(199,157,69,0.2)]">
         <input
           type="checkbox"
           checked={subitem.is_completed}
@@ -95,13 +98,13 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
               .eq('id', subitem.id)
             onUpdate()
           }}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+          className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded"
         />
       </div>
 
       {/* Nome do Subitem */}
-      <div className="w-64 min-w-[256px] px-3 py-2 border-r border-gray-200 flex items-center gap-2">
-        <span className={`text-sm flex-1 ${subitem.is_completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+      <div className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center gap-2">
+        <span className={`text-sm flex-1 ${subitem.is_completed ? 'line-through text-[rgba(255,255,255,0.5)]' : 'text-[rgba(255,255,255,0.95)]'}`}>
           {subitem.name}
         </span>
         <button
@@ -112,12 +115,12 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
               onOpenItemModal()
             }
           }}
-          className="relative flex-shrink-0 p-0.5 hover:bg-gray-200 rounded"
+          className="relative flex-shrink-0 p-0.5 hover:bg-[rgba(199,157,69,0.1)] rounded"
           title="Ver comentários"
         >
-          <MessageCircle className="text-gray-500" size={14} />
+          <MessageCircle className="text-[rgba(255,255,255,0.7)]" size={14} />
           {commentsCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-gray-700 text-white text-[10px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-[#C79D45] text-[#0F1711] text-[10px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
               {commentsCount > 99 ? '99+' : commentsCount}
             </span>
           )}
@@ -125,20 +128,25 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
       </div>
 
       {/* Colunas */}
-      {columns.map((column) => (
-        <div
-          key={column.id}
-          className="w-40 min-w-[160px] px-3 py-2 border-r border-gray-200"
-        >
-          <ColumnCell
-            column={column}
-            value={columnValues[column.id]}
-            itemId={subitem.item_id}
-            onChange={(value) => handleValueChange(column.id, value)}
-            boardId={boardId}
-          />
-        </div>
-      ))}
+      {columns.map((column) => {
+        const width = columnWidths?.[column.id] || getColumnWidth(column)
+        return (
+          <div
+            key={column.id}
+            className="flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)]"
+            style={{ width: `${width}px`, minWidth: '100px' }}
+          >
+                  <ColumnCell
+                    column={column}
+                    value={columnValues[column.id]}
+                    itemId={subitem.item_id}
+                    onChange={(value) => handleValueChange(column.id, value)}
+                    boardId={boardId}
+                    itemName={subitem.name}
+                  />
+          </div>
+        )
+      })}
     </div>
   )
 }

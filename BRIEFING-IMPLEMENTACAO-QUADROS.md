@@ -244,3 +244,4 @@ Motivo de Perda: (se perdido)
 
 **Próximo passo**: Criar scripts de seed para popular os quadros com dados de exemplo.
 
+

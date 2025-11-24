@@ -18,14 +18,15 @@ interface ColumnCellProps {
   itemId: string
   onChange: (value: any) => void
   boardId?: string
+  itemName?: string
 }
 
-export default function ColumnCell({ column, value, itemId, onChange, boardId }: ColumnCellProps) {
+export default function ColumnCell({ column, value, itemId, onChange, boardId, itemName }: ColumnCellProps) {
   switch (column.type) {
     case 'status':
       return <StatusCell value={value} onChange={onChange} column={column} boardId={boardId} />
     case 'person':
-      return <PersonCell value={value} onChange={onChange} />
+      return <PersonCell value={value} onChange={onChange} itemId={itemId} boardId={boardId} itemName={itemName} />
     case 'priority':
       return <PriorityCell value={value} onChange={onChange} />
     case 'date':
@@ -90,7 +91,13 @@ function EditableTextCell({ value, onChange }: { value: any, onChange: (value: a
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-full px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none"
+        className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
+        style={{ 
+          borderColor: '#C79D45',
+          backgroundColor: 'rgba(26, 42, 29, 0.7)',
+          color: 'rgba(255, 255, 255, 0.95)',
+          '--tw-ring-color': '#C79D45'
+        } as React.CSSProperties}
       />
     )
   }
@@ -98,7 +105,7 @@ function EditableTextCell({ value, onChange }: { value: any, onChange: (value: a
   return (
     <button
       onClick={() => setIsEditing(true)}
-      className="w-full text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-gray-100"
+      className="w-full text-left px-2 py-1 rounded text-sm text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]"
     >
       {value || '-'}
     </button>

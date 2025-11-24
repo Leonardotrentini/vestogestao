@@ -82,7 +82,7 @@ export default function BoardKanbanView({ groups, items, columns, onCreateItem, 
   const activeItem = activeId ? localItems.find(item => item.id === activeId) : null
 
   return (
-    <div className="flex-1 bg-gray-50 p-4 overflow-x-auto">
+    <div className="flex-1 bg-[#0F1711] p-4 overflow-x-auto">
       <DndContext
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}

@@ -222,3 +222,4 @@ Nenhum bug conhecido. Sistema estável e funcional.
 
 Todos os arquivos estão versionados no git e prontos para deploy.
 
+

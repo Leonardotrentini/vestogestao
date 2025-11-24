@@ -172,13 +172,25 @@ export default function StatusLabelManager({ column, isOpen, onClose, onUpdate, 
                         type="text"
                         value={editingLabel.label}
                         onChange={(e) => setEditingLabel({ ...editingLabel, label: e.target.value })}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="flex-1 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
+                        style={{ 
+                          borderColor: 'rgba(199, 157, 69, 0.3)',
+                          backgroundColor: 'rgba(26, 42, 29, 0.7)',
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          '--tw-ring-color': '#C79D45'
+                        } as React.CSSProperties}
                         placeholder="Nome da etiqueta"
                       />
                       <select
                         value={editingLabel.color}
                         onChange={(e) => setEditingLabel({ ...editingLabel, color: e.target.value })}
-                        className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
+                        style={{ 
+                          borderColor: 'rgba(199, 157, 69, 0.3)',
+                          backgroundColor: 'rgba(26, 42, 29, 0.7)',
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          '--tw-ring-color': '#C79D45'
+                        } as React.CSSProperties}
                       >
                         {COLOR_OPTIONS.map(color => (
                           <option key={color.value} value={color.value}>
@@ -233,13 +245,25 @@ export default function StatusLabelManager({ column, isOpen, onClose, onUpdate, 
                     value={newLabel.label}
                     onChange={(e) => setNewLabel({ ...newLabel, label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
                     placeholder="Nome da etiqueta"
-                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                    className="flex-1 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 placeholder:text-gray-400"
+                    style={{ 
+                      borderColor: 'rgba(199, 157, 69, 0.3)',
+                      backgroundColor: 'rgba(26, 42, 29, 0.7)',
+                      color: 'rgba(255, 255, 255, 0.95)',
+                      '--tw-ring-color': '#C79D45'
+                    } as React.CSSProperties}
                     autoFocus
                   />
                   <select
                     value={newLabel.color}
                     onChange={(e) => setNewLabel({ ...newLabel, color: e.target.value })}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm"
+                    className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
+                    style={{ 
+                      borderColor: 'rgba(199, 157, 69, 0.3)',
+                      backgroundColor: 'rgba(26, 42, 29, 0.7)',
+                      color: 'rgba(255, 255, 255, 0.95)',
+                      '--tw-ring-color': '#C79D45'
+                    } as React.CSSProperties}
                   >
                     {COLOR_OPTIONS.map(color => (
                       <option key={color.value} value={color.value}>

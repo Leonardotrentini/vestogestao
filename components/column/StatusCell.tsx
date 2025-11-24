@@ -27,6 +27,7 @@ interface StatusCellProps {
   value?: any
   onChange: (value: any) => void
   column?: Column
+  boardId?: string
   onColumnsReload?: () => void
 }
 
@@ -42,7 +43,7 @@ const COLOR_OPTIONS = [
   { value: 'bg-gray-200 text-gray-800', label: 'Cinza' },
 ]
 
-export default function StatusCell({ value, onChange, column, onColumnsReload }: StatusCellProps) {
+export default function StatusCell({ value, onChange, column, boardId, onColumnsReload }: StatusCellProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showLabelManager, setShowLabelManager] = useState(false)
   const [isEditingLabel, setIsEditingLabel] = useState(false)
@@ -248,7 +249,13 @@ export default function StatusCell({ value, onChange, column, onColumnsReload }:
                 handleCancelEditLabel()
               }
             }}
-            className={`flex-1 px-2 py-1 rounded text-sm font-medium border-2 border-blue-500 ${selectedStatus.color} focus:outline-none`}
+            className="flex-1 px-2 py-1 rounded text-sm font-medium border-2 focus:outline-none focus:ring-1"
+            style={{ 
+              borderColor: '#C79D45',
+              backgroundColor: 'rgba(26, 42, 29, 0.7)',
+              color: 'rgba(255, 255, 255, 0.95)',
+              '--tw-ring-color': '#C79D45'
+            } as React.CSSProperties}
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -320,7 +327,13 @@ export default function StatusCell({ value, onChange, column, onColumnsReload }:
                       value={newLabelName}
                       onChange={(e) => setNewLabelName(e.target.value)}
                       placeholder="Nome da etiqueta"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 placeholder:text-gray-400"
+                      style={{ 
+                        borderColor: 'rgba(199, 157, 69, 0.3)',
+                        backgroundColor: 'rgba(26, 42, 29, 0.7)',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        '--tw-ring-color': '#C79D45'
+                      } as React.CSSProperties}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           handleAddNewLabel()
@@ -334,7 +347,7 @@ export default function StatusCell({ value, onChange, column, onColumnsReload }:
                     <select
                       value={newLabelColor}
                       onChange={(e) => setNewLabelColor(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-[rgba(199,157,69,0.3)] bg-white text-[#0F1711] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#C79D45]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {COLOR_OPTIONS.map(color => (

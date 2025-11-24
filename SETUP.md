@@ -108,3 +108,4 @@ O Vercel detecta automaticamente que é um projeto Next.js.
 - Verifique se habilitou a replicação no Supabase
 - Verifique se as tabelas estão na lista de replicação
 
+

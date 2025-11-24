@@ -52,29 +52,28 @@ export default function TimeTrackingCell({ itemId, value, onChange }: TimeTracki
       .eq('item_id', itemId)
 
     let total = 0
-    let hasActive = false
-    let activeStart: Date | null = null
+    let activeStartDate: Date | null = null
 
     data?.forEach((track) => {
       if (track.end_time) {
         total += track.duration_seconds || 0
       } else {
         // Tempo em andamento
-        hasActive = true
-        activeStart = new Date(track.start_time)
-        const start = activeStart.getTime()
+        activeStartDate = new Date(track.start_time)
+        const start = activeStartDate.getTime()
         const now = new Date().getTime()
         total += Math.floor((now - start) / 1000)
       }
     })
 
-    if (hasActive && activeStart) {
-      const base = total - Math.floor((new Date().getTime() - activeStart.getTime()) / 1000)
-      const elapsed = Math.floor((new Date().getTime() - activeStart.getTime()) / 1000)
+    if (activeStartDate !== null) {
+      const startTime = (activeStartDate as Date).getTime()
+      const base = total - Math.floor((new Date().getTime() - startTime) / 1000)
+      const elapsed = Math.floor((new Date().getTime() - startTime) / 1000)
       setBaseSeconds(Math.max(0, base))
       setElapsedSeconds(elapsed)
       setIsRunning(true)
-      setCurrentStart(activeStart)
+      setCurrentStart(activeStartDate)
     } else {
       setBaseSeconds(total)
       setElapsedSeconds(0)

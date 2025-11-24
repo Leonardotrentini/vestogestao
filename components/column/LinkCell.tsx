@@ -57,7 +57,13 @@ export default function LinkCell({ value, onChange }: LinkCellProps) {
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-full px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none"
+        className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
+        style={{ 
+          borderColor: '#C79D45',
+          backgroundColor: 'rgba(26, 42, 29, 0.7)',
+          color: 'rgba(255, 255, 255, 0.95)',
+          '--tw-ring-color': '#C79D45'
+        } as React.CSSProperties}
         placeholder="https://..."
       />
     )
@@ -67,7 +73,7 @@ export default function LinkCell({ value, onChange }: LinkCellProps) {
     return (
       <button
         onClick={handleClick}
-        className="w-full flex items-center gap-1 px-2 py-1 rounded text-sm text-blue-600 hover:bg-blue-50"
+        className="w-full flex items-center gap-1 px-2 py-1 rounded text-sm text-[#C79D45] hover:bg-[rgba(199,157,69,0.1)] hover:text-[#D4AD5F]"
       >
         <span className="truncate">{value.length > 20 ? value.substring(0, 20) + '...' : value}</span>
         <ExternalLink size={12} />
@@ -78,7 +84,7 @@ export default function LinkCell({ value, onChange }: LinkCellProps) {
   return (
     <button
       onClick={() => setIsEditing(true)}
-      className="w-full text-left px-2 py-1 rounded text-sm text-gray-400 hover:bg-gray-100"
+      className="w-full text-left px-2 py-1 rounded text-sm text-[rgba(255,255,255,0.7)] hover:bg-[rgba(199,157,69,0.1)] hover:text-[rgba(255,255,255,0.95)]"
     >
       -
     </button>

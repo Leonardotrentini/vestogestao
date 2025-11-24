@@ -40,42 +40,42 @@ export default function DateCell({ value, onChange }: DateCellProps) {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full text-left px-2 py-1 rounded text-sm bg-orange-100 text-orange-800 hover:bg-orange-200"
+          className="w-full text-left px-2 py-1 rounded text-sm bg-[rgba(199,157,69,0.15)] text-[#C79D45] hover:bg-[rgba(199,157,69,0.25)]"
         >
           {display}
         </button>
         
         {isOpen && (
-          <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 min-w-[300px]">
+          <div className="absolute z-10 mt-1 bg-white border border-[rgba(199,157,69,0.3)] rounded-md shadow-lg p-4 min-w-[300px]">
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Data Início</label>
+                <label className="block text-xs text-[#0F1711] mb-1">Data Início</label>
                 <input
                   type="date"
                   value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
                   onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="w-full px-2 py-1 border border-[rgba(199,157,69,0.3)] bg-white text-[#0F1711] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C79D45]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Data Fim</label>
+                <label className="block text-xs text-[#0F1711] mb-1">Data Fim</label>
                 <input
                   type="date"
                   value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
                   onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="w-full px-2 py-1 border border-[rgba(199,157,69,0.3)] bg-white text-[#0F1711] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C79D45]"
                 />
               </div>
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={handleSave}
-                  className="flex-1 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                  className="flex-1 bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-3 py-1 rounded text-sm font-semibold hover:from-[#D4AD5F] hover:to-[#E5C485] transition-all"
                 >
                   Salvar
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                  className="flex-1 bg-[rgba(0,0,0,0.2)] text-[rgba(255,255,255,0.7)] px-3 py-1 rounded text-sm hover:bg-[rgba(0,0,0,0.3)] hover:text-[rgba(255,255,255,0.95)]"
                 >
                   Cancelar
                 </button>
@@ -91,42 +91,42 @@ export default function DateCell({ value, onChange }: DateCellProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full text-left px-2 py-1 rounded text-sm text-gray-400 hover:bg-gray-100"
+        className="w-full text-left px-2 py-1 rounded text-sm text-[rgba(255,255,255,0.7)] hover:bg-[rgba(199,157,69,0.1)] hover:text-[rgba(255,255,255,0.95)]"
       >
         -
       </button>
       
       {isOpen && (
-        <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 min-w-[300px]">
+        <div className="absolute z-10 mt-1 bg-white border border-[rgba(199,157,69,0.3)] rounded-md shadow-lg p-4 min-w-[300px]">
           <div className="space-y-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Data Início</label>
+              <label className="block text-xs text-[#0F1711] mb-1">Data Início</label>
               <input
                 type="date"
                 value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
                 onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                className="w-full px-2 py-1 border border-[rgba(199,157,69,0.3)] bg-white text-[#0F1711] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C79D45]"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Data Fim</label>
+              <label className="block text-xs text-[#0F1711] mb-1">Data Fim</label>
               <input
                 type="date"
                 value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
                 onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
-                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                className="w-full px-2 py-1 border border-[rgba(199,157,69,0.3)] bg-white text-[#0F1711] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C79D45]"
               />
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={handleSave}
-                className="flex-1 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                className="flex-1 bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-3 py-1 rounded text-sm font-semibold hover:from-[#D4AD5F] hover:to-[#E5C485] transition-all"
               >
                 Salvar
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="flex-1 bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                className="flex-1 bg-[rgba(0,0,0,0.2)] text-[rgba(255,255,255,0.7)] px-3 py-1 rounded text-sm hover:bg-[rgba(0,0,0,0.3)] hover:text-[rgba(255,255,255,0.95)]"
               >
                 Cancelar
               </button>

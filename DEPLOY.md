@@ -61,3 +61,4 @@ O projeto é um Next.js padrão, então pode ser deployado em qualquer plataform
 2. Ter configurado as variáveis de ambiente
 3. Ter testado localmente (`npm run dev`)
 
+

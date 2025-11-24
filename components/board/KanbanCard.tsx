@@ -122,7 +122,7 @@ export default function KanbanCard({ item, columns, boardId, isDragging = false 
       <div
         ref={setNodeRef}
         style={style}
-        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow ${
+        className={`bg-card rounded-lg shadow-sm border border-border p-3 hover:shadow-md transition-shadow ${
           isSortableDragging ? 'opacity-50' : ''
         }`}
       >
@@ -130,7 +130,7 @@ export default function KanbanCard({ item, columns, boardId, isDragging = false 
         <div
           {...listeners}
           {...attributes}
-          className="flex items-center gap-2 mb-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+          className="flex items-center gap-2 mb-2 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
         >
           <GripVertical size={14} />
         </div>
@@ -140,9 +140,8 @@ export default function KanbanCard({ item, columns, boardId, isDragging = false 
           onClick={() => !isSortableDragging && setShowModal(true)}
           className="cursor-pointer"
         >
-
-        {/* Nome do Item */}
-        <h4 className="font-medium text-gray-900 mb-2">{item.name}</h4>
+          {/* Nome do Item */}
+          <h4 className="font-medium text-card-foreground mb-2">{item.name}</h4>
 
         {/* Colunas Principais */}
         <div className="space-y-1 mb-2">
@@ -158,7 +157,7 @@ export default function KanbanCard({ item, columns, boardId, isDragging = false 
             </div>
           )}
           {mainColumns.filter(c => c.type !== 'status').slice(0, 1).map((column) => (
-            <div key={column.id} className="text-xs text-gray-600">
+            <div key={column.id} className="text-xs text-muted-foreground">
               <ColumnCell
                 column={column}
                 value={columnValues[column.id]}
@@ -171,14 +170,14 @@ export default function KanbanCard({ item, columns, boardId, isDragging = false 
         </div>
 
           {/* Footer com badges */}
-          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
             {subitemsCount > 0 && (
-              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+              <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
                 {subitemsCount}
               </span>
             )}
             {commentsCount > 0 && (
-              <div className="flex items-center gap-1 text-gray-500">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <MessageCircle size={12} />
                 <span className="text-xs">{commentsCount}</span>
               </div>

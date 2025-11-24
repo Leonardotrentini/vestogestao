@@ -1,0 +1,30 @@
+═══════════════════════════════════════════════════════════════
+  COMO ADICIONAR A LOGO DA VESTO CO.
+═══════════════════════════════════════════════════════════════
+
+Para adicionar a logo da VESTO co.:
+
+1. Coloque a imagem da logo nesta pasta (public/)
+2. Nomeie o arquivo como: logo.png
+3. O componente Logo vai detectar automaticamente e usar a imagem
+
+FORMATOS ACEITOS:
+- PNG (recomendado)
+- SVG
+- JPG/JPEG
+
+TAMANHO RECOMENDADO:
+- Largura: 96px (ou múltiplo)
+- Altura: 32px (ou proporcional)
+- Fundo transparente (PNG) é ideal
+
+Se a imagem não existir, o sistema usará automaticamente
+um fallback estilizado com as cores da marca (verde).
+
+A logo aparecerá no:
+- Canto superior esquerdo do header dos boards
+- Canto superior esquerdo da sidebar
+
+═══════════════════════════════════════════════════════════════
+
+

@@ -38,9 +38,31 @@ export default function BoardView({ boardId, workspaceId, boardName }: BoardView
       })
       .subscribe()
 
+    // Verificar prazos a cada 5 minutos
+    const checkDeadlinesInterval = setInterval(async () => {
+      try {
+        const { checkDeadlines } = await import('@/lib/notifications')
+        await checkDeadlines()
+      } catch (error) {
+        console.error('Erro ao verificar prazos:', error)
+      }
+    }, 5 * 60 * 1000) // 5 minutos
+
+    // Verificar prazos imediatamente ao carregar
+    const checkDeadlinesImmediate = async () => {
+      try {
+        const { checkDeadlines } = await import('@/lib/notifications')
+        await checkDeadlines()
+      } catch (error) {
+        console.error('Erro ao verificar prazos:', error)
+      }
+    }
+    checkDeadlinesImmediate()
+
     return () => {
       supabase.removeChannel(groupsChannel)
       supabase.removeChannel(itemsChannel)
+      clearInterval(checkDeadlinesInterval)
     }
   }, [boardId])
 
@@ -103,11 +125,11 @@ export default function BoardView({ boardId, workspaceId, boardName }: BoardView
   }
 
   if (loading) {
-    return <div className="p-8 text-gray-600">Carregando...</div>
+    return <div className="p-8 text-[rgba(255,255,255,0.7)]">Carregando...</div>
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-[#0F1711]">
       <BoardHeader 
         boardName={boardName} 
         onCreateGroup={handleCreateGroup}
@@ -118,7 +140,7 @@ export default function BoardView({ boardId, workspaceId, boardName }: BoardView
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         {viewMode === 'table' ? (
           <BoardTable
             groups={groups}
