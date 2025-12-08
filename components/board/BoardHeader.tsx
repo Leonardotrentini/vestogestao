@@ -15,9 +15,10 @@ interface BoardHeaderProps {
   onColumnsChange?: () => void
   viewMode?: 'table' | 'kanban'
   onViewModeChange?: (mode: 'table' | 'kanban') => void
+  isDocument?: boolean
 }
 
-export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange }: BoardHeaderProps) {
+export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false }: BoardHeaderProps) {
   const [showGroupInput, setShowGroupInput] = useState(false)
   const [groupName, setGroupName] = useState('')
 
@@ -39,8 +40,8 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
         </div>
         
         <div className="flex items-center gap-3">
-          {/* Toggle de Visualização */}
-          {onViewModeChange && (
+          {/* Toggle de Visualização - ocultar em documentos */}
+          {onViewModeChange && !isDocument && (
             <div className="flex items-center bg-[rgba(0,0,0,0.3)] rounded-lg p-1 border border-[rgba(199,157,69,0.3)]">
               <button
                 onClick={() => onViewModeChange('table')}
@@ -72,17 +73,17 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
               </button>
             </div>
           )}
-          {boardName === 'Gestão de Clientes' && workspaceId && (
+          {!isDocument && boardName === 'Gestão de Clientes' && workspaceId && (
             <SeedGestaoClientesButton workspaceId={workspaceId} />
           )}
-          {boardId && columns && onColumnsChange && (
+          {!isDocument && boardId && columns && onColumnsChange && (
             <ColumnsManager 
               boardId={boardId} 
               columns={columns} 
               onColumnsChange={onColumnsChange}
             />
           )}
-          {showGroupInput ? (
+          {!isDocument && showGroupInput ? (
             <form onSubmit={handleCreateGroup} className="flex items-center gap-2">
               <input
                 type="text"
@@ -115,7 +116,7 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
                 Cancelar
               </button>
             </form>
-          ) : (
+          ) : !isDocument ? (
             <button
               onClick={() => setShowGroupInput(true)}
               className="flex items-center gap-2 bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-4 py-2 rounded-lg hover:from-[#D4AD5F] hover:to-[#E5C485] text-sm font-semibold transition-all shadow-[0_4px_16px_rgba(199,157,69,0.25)]"
@@ -123,7 +124,7 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
               <Plus size={16} />
               Criar grupo
             </button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

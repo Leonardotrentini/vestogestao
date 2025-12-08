@@ -6,14 +6,17 @@ import { Group, Item, Column } from '@/supabase/migrations/types'
 import BoardTable from './BoardTable'
 import BoardKanbanView from './BoardKanbanView'
 import BoardHeader from './BoardHeader'
+import DocumentEditor from './DocumentEditor'
 
 interface BoardViewProps {
   boardId: string
   workspaceId: string
   boardName?: string
+  boardType?: 'board' | 'document'
+  boardContent?: string
 }
 
-export default function BoardView({ boardId, workspaceId, boardName }: BoardViewProps) {
+export default function BoardView({ boardId, workspaceId, boardName, boardType = 'board', boardContent = '' }: BoardViewProps) {
   const [groups, setGroups] = useState<Group[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [columns, setColumns] = useState<Column[]>([])
@@ -126,6 +129,26 @@ export default function BoardView({ boardId, workspaceId, boardName }: BoardView
 
   if (loading) {
     return <div className="p-8 text-[rgba(255,255,255,0.7)]">Carregando...</div>
+  }
+
+  // Se for documento, renderizar editor de texto
+  if (boardType === 'document') {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+        <BoardHeader 
+          boardName={boardName} 
+          onCreateGroup={handleCreateGroup}
+          boardId={boardId}
+          workspaceId={workspaceId}
+          columns={columns}
+          onColumnsChange={loadData}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          isDocument={true}
+        />
+        <DocumentEditor boardId={boardId} initialContent={boardContent} />
+      </div>
+    )
   }
 
   return (

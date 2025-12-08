@@ -33,7 +33,13 @@ export default async function BoardPage({
       <div className="flex min-h-screen bg-[#0F1711]">
       <Sidebar workspaceId={workspaceId} currentBoardId={boardId} />
       <div className="flex-1 flex flex-col min-w-0 ml-64">
-        <BoardView boardId={boardId} workspaceId={workspaceId} boardName={board.name} />
+        <BoardView 
+          boardId={boardId} 
+          workspaceId={workspaceId} 
+          boardName={board.name}
+          boardType={board.type || 'board'}
+          boardContent={board.content || ''}
+        />
       </div>
     </div>
   )
