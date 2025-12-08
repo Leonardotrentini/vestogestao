@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Item, Column, ColumnValue, Subitem, Comment } from '@/supabase/migrations/types'
-import { X, MessageSquare, FileText, Activity } from 'lucide-react'
+import { X, MessageSquare, FileText, Activity, Pencil, Check, X as XIcon } from 'lucide-react'
 import { getDefaultUserId } from '@/lib/utils'
 import { format } from 'date-fns'
 import MentionInput from '@/components/common/MentionInput'
@@ -34,6 +34,8 @@ export default function ItemDetailModal({
   const [newComment, setNewComment] = useState('')
   const [isEditingName, setIsEditingName] = useState(false)
   const [itemName, setItemName] = useState(item.name)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editingCommentContent, setEditingCommentContent] = useState('')
   const supabase = createClient()
   const defaultUserId = getDefaultUserId()
 
@@ -181,6 +183,36 @@ export default function ItemDetailModal({
     setIsEditingName(false)
   }
 
+  const handleStartEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id)
+    setEditingCommentContent(comment.content)
+  }
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null)
+    setEditingCommentContent('')
+  }
+
+  const handleSaveEditComment = async (commentId: string) => {
+    if (!editingCommentContent.trim()) {
+      handleCancelEditComment()
+      return
+    }
+
+    await supabase
+      .from('comments')
+      .update({ 
+        content: editingCommentContent.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', commentId)
+
+    setEditingCommentId(null)
+    setEditingCommentContent('')
+    loadComments()
+    onUpdate?.()
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-[#1A2A1D] rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-[rgba(199,157,69,0.3)]">
@@ -316,19 +348,70 @@ export default function ItemDetailModal({
                   <p className="text-[rgba(255,255,255,0.7)] text-center py-8">Nenhuma atualização ainda</p>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="border-b border-[rgba(199,157,69,0.2)] pb-4">
+                    <div key={comment.id} className="border-b border-[rgba(199,157,69,0.2)] pb-4 group/comment">
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-full bg-[#C79D45] flex items-center justify-center text-sm font-medium text-[#0F1711]">
                           {comment.user_id.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-[rgba(255,255,255,0.95)]">Usuário</span>
-                            <span className="text-xs text-[rgba(255,255,255,0.5)]">
-                              {format(new Date(comment.created_at), "dd/MM/yyyy 'às' HH:mm")}
-                            </span>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-[rgba(255,255,255,0.95)]">Usuário</span>
+                              <span className="text-xs text-[rgba(255,255,255,0.5)]">
+                                {format(new Date(comment.created_at), "dd/MM/yyyy 'às' HH:mm")}
+                              </span>
+                            </div>
+                            {editingCommentId === comment.id ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleSaveEditComment(comment.id)}
+                                  className="p-1 hover:bg-[rgba(199,157,69,0.2)] rounded transition-colors"
+                                  title="Salvar"
+                                >
+                                  <Check size={16} className="text-[#C79D45]" />
+                                </button>
+                                <button
+                                  onClick={handleCancelEditComment}
+                                  className="p-1 hover:bg-[rgba(239,68,68,0.2)] rounded transition-colors"
+                                  title="Cancelar"
+                                >
+                                  <XIcon size={16} className="text-red-400" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleStartEditComment(comment)}
+                                className="p-1 hover:bg-[rgba(199,157,69,0.2)] rounded transition-colors opacity-70 group-hover/comment:opacity-100"
+                                title="Editar atualização"
+                              >
+                                <Pencil size={16} className="text-[rgba(255,255,255,0.7)] hover:text-[#C79D45] transition-colors" />
+                              </button>
+                            )}
                           </div>
-                          <p className="text-sm text-[rgba(255,255,255,0.9)] whitespace-pre-wrap">{comment.content}</p>
+                          {editingCommentId === comment.id ? (
+                            <textarea
+                              value={editingCommentContent}
+                              onChange={(e) => setEditingCommentContent(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.ctrlKey) {
+                                  handleSaveEditComment(comment.id)
+                                } else if (e.key === 'Escape') {
+                                  handleCancelEditComment()
+                                }
+                              }}
+                              className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#C79D45] text-sm resize-none"
+                              style={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                borderColor: 'rgba(199, 157, 69, 0.3)',
+                                color: 'rgba(255, 255, 255, 0.95)',
+                                minHeight: '80px'
+                              } as React.CSSProperties}
+                              autoFocus
+                              rows={4}
+                            />
+                          ) : (
+                            <p className="text-sm text-[rgba(255,255,255,0.9)] whitespace-pre-wrap">{comment.content}</p>
+                          )}
                         </div>
                       </div>
                     </div>
