@@ -155,9 +155,30 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   }
 
   const normalizedSearch = searchTerm.trim().toLowerCase()
+  
+  // Filtrar itens baseado no termo de pesquisa
   const filteredItems = normalizedSearch
-    ? items.filter((item) => (item.name || '').toLowerCase().includes(normalizedSearch))
+    ? items.filter((item) => {
+        const itemName = (item.name || '').toLowerCase()
+        return itemName.includes(normalizedSearch)
+      })
     : items
+
+  // Filtrar e preparar grupos para mostrar apenas aqueles que têm itens correspondentes à pesquisa
+  const filteredGroups = normalizedSearch
+    ? groups
+        .filter((group) => {
+          // Verificar se algum item do grupo corresponde à pesquisa
+          const groupItems = filteredItems.filter((item) => item.group_id === group.id)
+          const groupNameMatches = group.name.toLowerCase().includes(normalizedSearch)
+          return groupItems.length > 0 || groupNameMatches
+        })
+        .map((group) => ({
+          ...group,
+          // Expandir automaticamente grupos que têm resultados da busca
+          is_collapsed: false,
+        }))
+    : groups
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0F1711]">
@@ -173,26 +194,43 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
       />
-      <div className="flex-1 overflow-hidden">
-        {viewMode === 'table' ? (
-          <BoardTable
-            groups={groups}
-            items={filteredItems}
-            columns={columns}
-            onToggleGroup={handleToggleGroup}
-            onCreateItem={handleCreateItem}
-            boardId={boardId}
-          />
-        ) : (
-          <BoardKanbanView
-            groups={groups}
-            items={filteredItems}
-            columns={columns}
-            onCreateItem={handleCreateItem}
-            boardId={boardId}
-          />
-        )}
-      </div>
+      {normalizedSearch && filteredItems.length === 0 && (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-[rgba(255,255,255,0.7)] mb-2">
+              Nenhum resultado encontrado para <span className="text-[#C79D45] font-medium">"{searchTerm}"</span>
+            </p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="text-[#C79D45] hover:text-[#D4AD5F] text-sm underline"
+            >
+              Limpar busca
+            </button>
+          </div>
+        </div>
+      )}
+      {(!normalizedSearch || filteredItems.length > 0) && (
+        <div className="flex-1 overflow-hidden">
+          {viewMode === 'table' ? (
+            <BoardTable
+              groups={filteredGroups}
+              items={filteredItems}
+              columns={columns}
+              onToggleGroup={handleToggleGroup}
+              onCreateItem={handleCreateItem}
+              boardId={boardId}
+            />
+          ) : (
+            <BoardKanbanView
+              groups={filteredGroups}
+              items={filteredItems}
+              columns={columns}
+              onCreateItem={handleCreateItem}
+              boardId={boardId}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }
