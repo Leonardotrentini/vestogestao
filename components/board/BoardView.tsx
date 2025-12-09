@@ -22,6 +22,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   const [columns, setColumns] = useState<Column[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
+  const [searchTerm, setSearchTerm] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -145,11 +146,18 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           isDocument={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
         />
         <DocumentEditor boardId={boardId} initialContent={boardContent} />
       </div>
     )
   }
+
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredItems = normalizedSearch
+    ? items.filter((item) => (item.name || '').toLowerCase().includes(normalizedSearch))
+    : items
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0F1711]">
@@ -162,12 +170,14 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         onColumnsChange={loadData}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
       />
       <div className="flex-1 overflow-hidden">
         {viewMode === 'table' ? (
           <BoardTable
             groups={groups}
-            items={items}
+            items={filteredItems}
             columns={columns}
             onToggleGroup={handleToggleGroup}
             onCreateItem={handleCreateItem}
@@ -176,7 +186,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         ) : (
           <BoardKanbanView
             groups={groups}
-            items={items}
+            items={filteredItems}
             columns={columns}
             onCreateItem={handleCreateItem}
             boardId={boardId}

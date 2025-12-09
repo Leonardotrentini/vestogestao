@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, LayoutGrid, Table } from 'lucide-react'
+import { Plus, LayoutGrid, Table, Search, X } from 'lucide-react'
 import { Column } from '@/supabase/migrations/types'
 import ColumnsManager from './ColumnsManager'
 import SeedGestaoClientesButton from '@/components/workspace/SeedGestaoClientesButton'
@@ -16,9 +16,11 @@ interface BoardHeaderProps {
   viewMode?: 'table' | 'kanban'
   onViewModeChange?: (mode: 'table' | 'kanban') => void
   isDocument?: boolean
+  searchTerm?: string
+  onSearchChange?: (value: string) => void
 }
 
-export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false }: BoardHeaderProps) {
+export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false, searchTerm = '', onSearchChange }: BoardHeaderProps) {
   const [showGroupInput, setShowGroupInput] = useState(false)
   const [groupName, setGroupName] = useState('')
 
@@ -40,6 +42,28 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
         </div>
         
         <div className="flex items-center gap-3">
+          {!isDocument && onSearchChange && (
+            <div className="flex items-center gap-2 bg-[rgba(0,0,0,0.25)] border border-[rgba(199,157,69,0.3)] rounded-lg px-3 py-2 transition-all w-72 focus-within:border-[rgba(199,157,69,0.5)]">
+              <Search size={16} className="text-[rgba(255,255,255,0.8)] flex-shrink-0" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Buscar neste quadro"
+                className="flex-1 bg-transparent text-sm text-[rgba(255,255,255,0.95)] placeholder:text-[rgba(255,255,255,0.5)] focus:outline-none"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => onSearchChange('')}
+                  className="flex-shrink-0 p-1 hover:bg-[rgba(199,157,69,0.2)] rounded transition-colors"
+                  title="Limpar busca"
+                >
+                  <X size={14} className="text-[rgba(255,255,255,0.7)]" />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Toggle de Visualização - ocultar em documentos */}
           {onViewModeChange && !isDocument && (
             <div className="flex items-center bg-[rgba(0,0,0,0.3)] rounded-lg p-1 border border-[rgba(199,157,69,0.3)]">
