@@ -1,7 +1,33 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TextStyle from '@tiptap/extension-text-style'
+import Color from '@tiptap/extension-color'
+import TextAlign from '@tiptap/extension-text-align'
+import Link from '@tiptap/extension-link'
+import Underline from '@tiptap/extension-underline'
+import Typography from '@tiptap/extension-typography'
 import { createClient } from '@/lib/supabase/client'
+import { 
+  Bold, 
+  Italic, 
+  Underline as UnderlineIcon, 
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  List,
+  ListOrdered,
+  Link as LinkIcon,
+  Heading1,
+  Heading2,
+  Heading3,
+  Minus,
+  Plus
+} from 'lucide-react'
 
 interface DocumentEditorProps {
   boardId: string
@@ -9,12 +35,54 @@ interface DocumentEditorProps {
 }
 
 export default function DocumentEditor({ boardId, initialContent = '' }: DocumentEditorProps) {
-  const [content, setContent] = useState(initialContent)
   const [savedContent, setSavedContent] = useState(initialContent)
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [showLinkModal, setShowLinkModal] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
+  const [showColorPicker, setShowColorPicker] = useState(false)
   const supabase = createClient()
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      TextStyle,
+      Color,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-[#C79D45] underline cursor-pointer hover:text-[#D4AD5F]',
+        },
+      }),
+      Underline,
+      Typography,
+    ],
+    content: initialContent || '',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-invert max-w-none focus:outline-none',
+        style: 'min-height: 100%; padding: 48px;',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      // Auto-save após 2 segundos de inatividade
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+
+      saveTimeoutRef.current = setTimeout(async () => {
+        await saveContent(editor.getHTML())
+      }, 2000)
+    },
+  })
 
   // Carregar conteúdo do banco ao montar
   useEffect(() => {
@@ -25,29 +93,31 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
         .eq('id', boardId)
         .single()
 
-      if (data?.content) {
-        setContent(data.content || '')
+      if (data?.content && editor) {
+        editor.commands.setContent(data.content || '')
         setSavedContent(data.content || '')
-      } else if (initialContent) {
-        setContent(initialContent)
+      } else if (initialContent && editor) {
+        editor.commands.setContent(initialContent)
         setSavedContent(initialContent)
       }
     }
-    loadContent()
+    if (editor) {
+      loadContent()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boardId])
+  }, [boardId, editor])
 
-  const saveContent = async (text: string) => {
+  const saveContent = async (html: string) => {
     setSaving(true)
     try {
       const { error } = await supabase
         .from('boards')
-        .update({ content: text })
+        .update({ content: html })
         .eq('id', boardId)
 
       if (!error) {
         setLastSaved(new Date())
-        setSavedContent(text)
+        setSavedContent(html)
       } else {
         console.error('Erro ao salvar conteúdo:', error)
       }
@@ -58,36 +128,42 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
     }
   }
 
-  // Auto-save após 2 segundos de inatividade
-  useEffect(() => {
-    if (content === savedContent) return
-
-    // Limpar timeout anterior
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    // Criar novo timeout
-    saveTimeoutRef.current = setTimeout(async () => {
-      await saveContent(content)
-    }, 2000) // 2 segundos de delay
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content])
-
   const handleManualSave = async () => {
+    if (!editor) return
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
     }
-    await saveContent(content)
+    await saveContent(editor.getHTML())
   }
 
-  const hasChanges = content !== savedContent
+  const handleSetLink = () => {
+    if (!editor) return
+    const url = linkUrl.trim()
+    if (url) {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    } else {
+      editor.chain().focus().unsetLink().run()
+    }
+    setLinkUrl('')
+    setShowLinkModal(false)
+  }
+
+  const handleRemoveLink = () => {
+    if (!editor) return
+    editor.chain().focus().unsetLink().run()
+    setShowLinkModal(false)
+  }
+
+  const colors = [
+    '#FFFFFF', '#000000', '#C79D45', '#FF6B6B', '#4ECDC4', '#45B7D1', 
+    '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739'
+  ]
+
+  const hasChanges = editor?.getHTML() !== savedContent
+
+  if (!editor) {
+    return <div className="flex-1 flex items-center justify-center text-[rgba(255,255,255,0.7)]">Carregando editor...</div>
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-[#0F1711]">
@@ -126,20 +202,332 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
         </button>
       </div>
 
-      {/* Editor de texto */}
-      <div className="flex-1 p-6 overflow-auto">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Comece a escrever... Este é um documento em branco onde você pode escrever texto livre."
-          className="w-full h-full resize-none focus:outline-none text-[rgba(255,255,255,0.95)] leading-relaxed"
-          style={{
-            backgroundColor: 'transparent',
-            fontSize: '16px',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-          }}
-        />
+      {/* Toolbar */}
+      <div className="px-6 py-3 border-b border-[rgba(199,157,69,0.2)] bg-[#1A2A1D] flex items-center gap-2 flex-wrap">
+        {/* Formatação de texto */}
+        <div className="flex items-center gap-1 border-r border-[rgba(199,157,69,0.2)] pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('bold') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Negrito"
+          >
+            <Bold size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('italic') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Itálico"
+          >
+            <Italic size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('underline') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Sublinhado"
+          >
+            <UnderlineIcon size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('strike') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Tachado"
+          >
+            <Strikethrough size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+        </div>
+
+        {/* Cabeçalhos */}
+        <div className="flex items-center gap-1 border-r border-[rgba(199,157,69,0.2)] pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('heading', { level: 1 }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Título 1"
+          >
+            <Heading1 size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('heading', { level: 2 }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Título 2"
+          >
+            <Heading2 size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('heading', { level: 3 }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Título 3"
+          >
+            <Heading3 size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+        </div>
+
+        {/* Listas */}
+        <div className="flex items-center gap-1 border-r border-[rgba(199,157,69,0.2)] pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('bulletList') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Lista com marcadores"
+          >
+            <List size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive('orderedList') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Lista numerada"
+          >
+            <ListOrdered size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+        </div>
+
+        {/* Alinhamento */}
+        <div className="flex items-center gap-1 border-r border-[rgba(199,157,69,0.2)] pr-2">
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive({ textAlign: 'left' }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Alinhar à esquerda"
+          >
+            <AlignLeft size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive({ textAlign: 'center' }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Centralizar"
+          >
+            <AlignCenter size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive({ textAlign: 'right' }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Alinhar à direita"
+          >
+            <AlignRight size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+            className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+              editor.isActive({ textAlign: 'justify' }) ? 'bg-[rgba(199,157,69,0.2)]' : ''
+            }`}
+            title="Justificar"
+          >
+            <AlignJustify size={16} className="text-[rgba(255,255,255,0.7)]" />
+          </button>
+        </div>
+
+        {/* Link */}
+        <div className="flex items-center gap-1 border-r border-[rgba(199,157,69,0.2)] pr-2">
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (editor.isActive('link')) {
+                  setLinkUrl(editor.getAttributes('link').href || '')
+                }
+                setShowLinkModal(!showLinkModal)
+              }}
+              className={`p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors ${
+                editor.isActive('link') ? 'bg-[rgba(199,157,69,0.2)]' : ''
+              }`}
+              title="Inserir link"
+            >
+              <LinkIcon size={16} className="text-[rgba(255,255,255,0.7)]" />
+            </button>
+            {showLinkModal && (
+              <div className="absolute top-full left-0 mt-2 bg-[#1A2A1D] border border-[rgba(199,157,69,0.3)] rounded-lg p-3 z-50 min-w-[300px]">
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://exemplo.com"
+                  className="w-full px-3 py-2 bg-[rgba(0,0,0,0.3)] border border-[rgba(199,157,69,0.3)] rounded text-sm text-[rgba(255,255,255,0.95)] focus:outline-none focus:border-[rgba(199,157,69,0.5)] mb-2"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSetLink()
+                    } else if (e.key === 'Escape') {
+                      setShowLinkModal(false)
+                    }
+                  }}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSetLink}
+                    className="flex-1 px-3 py-1.5 bg-[rgba(199,157,69,0.3)] text-[#C79D45] rounded text-sm font-medium hover:bg-[rgba(199,157,69,0.4)]"
+                  >
+                    Aplicar
+                  </button>
+                  {editor.isActive('link') && (
+                    <button
+                      onClick={handleRemoveLink}
+                      className="px-3 py-1.5 bg-[rgba(255,0,0,0.2)] text-red-400 rounded text-sm font-medium hover:bg-[rgba(255,0,0,0.3)]"
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cor do texto */}
+        <div className="flex items-center gap-1">
+          <div className="relative">
+            <button
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              className="p-2 rounded hover:bg-[rgba(199,157,69,0.1)] transition-colors"
+              title="Cor do texto"
+            >
+              <div className="w-4 h-4 border border-[rgba(255,255,255,0.3)] rounded" style={{ backgroundColor: editor.getAttributes('textStyle').color || '#FFFFFF' }} />
+            </button>
+            {showColorPicker && (
+              <div className="absolute top-full left-0 mt-2 bg-[#1A2A1D] border border-[rgba(199,157,69,0.3)] rounded-lg p-3 z-50">
+                <div className="grid grid-cols-6 gap-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => {
+                        editor.chain().focus().setColor(color).run()
+                        setShowColorPicker(false)
+                      }}
+                      className="w-8 h-8 rounded border border-[rgba(255,255,255,0.2)] hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <input
+                  type="color"
+                  onChange={(e) => {
+                    editor.chain().focus().setColor(e.target.value).run()
+                    setShowColorPicker(false)
+                  }}
+                  className="mt-2 w-full h-8 cursor-pointer"
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Editor de texto */}
+      <div className="flex-1 overflow-auto" onClick={() => { setShowLinkModal(false); setShowColorPicker(false); }}>
+        <div className="max-w-4xl mx-auto my-8">
+          <EditorContent 
+            editor={editor}
+            className="prose prose-invert prose-lg max-w-none"
+          />
+        </div>
+      </div>
+
+      <style jsx global>{`
+        .ProseMirror {
+          outline: none;
+          min-height: 500px;
+          padding: 48px;
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 16px;
+          line-height: 1.6;
+        }
+
+        .ProseMirror p {
+          margin: 0.75em 0;
+        }
+
+        .ProseMirror h1 {
+          font-size: 2em;
+          font-weight: bold;
+          margin: 0.67em 0;
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .ProseMirror h2 {
+          font-size: 1.5em;
+          font-weight: bold;
+          margin: 0.75em 0;
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .ProseMirror h3 {
+          font-size: 1.25em;
+          font-weight: bold;
+          margin: 0.83em 0;
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .ProseMirror ul,
+        .ProseMirror ol {
+          padding-left: 1.5em;
+          margin: 0.75em 0;
+        }
+
+        .ProseMirror li {
+          margin: 0.25em 0;
+        }
+
+        .ProseMirror a {
+          color: #C79D45;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+
+        .ProseMirror a:hover {
+          color: #D4AD5F;
+        }
+
+        .ProseMirror strong {
+          font-weight: bold;
+        }
+
+        .ProseMirror em {
+          font-style: italic;
+        }
+
+        .ProseMirror u {
+          text-decoration: underline;
+        }
+
+        .ProseMirror s {
+          text-decoration: line-through;
+        }
+
+        .ProseMirror[style*="text-align: left"] {
+          text-align: left;
+        }
+
+        .ProseMirror[style*="text-align: center"] {
+          text-align: center;
+        }
+
+        .ProseMirror[style*="text-align: right"] {
+          text-align: right;
+        }
+
+        .ProseMirror[style*="text-align: justify"] {
+          text-align: justify;
+        }
+      `}</style>
     </div>
   )
 }
