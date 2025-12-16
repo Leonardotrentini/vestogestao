@@ -145,7 +145,7 @@ export default function NewBoardPage() {
       const { getDefaultUserId } = await import('@/lib/utils')
       const defaultUserId = getDefaultUserId()
 
-      // Inserir board (sem type para compatibilidade - campo será adicionado depois da migration)
+      // Inserir board com o tipo especificado
       const { data, error: insertError } = await supabase
         .from('boards')
         .insert([
@@ -154,6 +154,8 @@ export default function NewBoardPage() {
             description: description || null,
             workspace_id: workspaceId,
             user_id: defaultUserId,
+            type: boardType,
+            content: boardType === 'document' ? '' : null,
           },
         ])
         .select()
