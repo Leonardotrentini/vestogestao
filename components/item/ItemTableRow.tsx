@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useDraggable } from '@dnd-kit/core'
 import { createClient } from '@/lib/supabase/client'
 import { Item, Column, Subitem } from '@/supabase/migrations/types'
 import { X, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react'
@@ -26,6 +27,20 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
   const [isExpanded, setIsExpanded] = useState(false)
   const [subitems, setSubitems] = useState<Subitem[]>([])
   const supabase = createClient()
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: item.id,
+  })
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined
 
   useEffect(() => {
     setItemName(item.name)
@@ -162,7 +177,11 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
 
   return (
     <>
-      <div className="flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors group/item-row">
+      <div 
+        ref={setNodeRef}
+        style={style}
+        className={`flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors group/item-row ${isDragging ? 'opacity-50' : ''}`}
+      >
         {/* Checkbox */}
         <div className="w-8 flex-shrink-0 px-2 py-2 flex items-center border-r border-[rgba(199,157,69,0.2)]">
           <input
@@ -172,9 +191,11 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
           />
         </div>
 
-        {/* Nome do Item */}
+        {/* Nome do Item - Área arrastável */}
         <div 
-          className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center cursor-pointer"
+          {...listeners}
+          {...attributes}
+          className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center cursor-grab active:cursor-grabbing"
           onClick={() => setShowModal(true)}
           onDoubleClick={(e) => {
             e.stopPropagation()

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useDroppable } from '@dnd-kit/core'
 import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react'
 import { Group, Item, Column } from '@/supabase/migrations/types'
 import { createClient } from '@/lib/supabase/client'
@@ -31,6 +32,10 @@ export default function GroupSection({
   const [groupName, setGroupName] = useState(group.name)
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({})
   const supabase = createClient()
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: group.id,
+  })
 
   // Inicializar larguras das colunas
   useEffect(() => {
@@ -78,7 +83,10 @@ export default function GroupSection({
   return (
     <div id={`group-${group.id}`} className="border-b border-[rgba(199,157,69,0.2)]">
       {/* Header do Grupo */}
-      <div className="flex items-center bg-[#1A2A1D] border-b border-[rgba(199,157,69,0.2)] px-4 py-2 hover:bg-[rgba(199,157,69,0.1)] group/header">
+      <div 
+        ref={setNodeRef}
+        className={`flex items-center bg-[#1A2A1D] border-b border-[rgba(199,157,69,0.2)] px-4 py-2 hover:bg-[rgba(199,157,69,0.1)] group/header transition-colors ${isOver ? 'bg-[rgba(199,157,69,0.2)] border-[rgba(199,157,69,0.5)]' : ''}`}
+      >
         <div 
           className="flex items-center gap-2 flex-shrink-0 w-64 cursor-pointer"
           onClick={() => onToggle(group.id, group.is_collapsed)}

@@ -128,6 +128,15 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     loadData()
   }
 
+  const handleMoveItem = async (itemId: string, targetGroupId: string) => {
+    await supabase
+      .from('items')
+      .update({ group_id: targetGroupId })
+      .eq('id', itemId)
+
+    loadData()
+  }
+
   if (loading) {
     return <div className="p-8 text-[rgba(255,255,255,0.7)]">Carregando...</div>
   }
@@ -218,6 +227,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
               columns={columns}
               onToggleGroup={handleToggleGroup}
               onCreateItem={handleCreateItem}
+              onMoveItem={handleMoveItem}
               boardId={boardId}
             />
           ) : (
