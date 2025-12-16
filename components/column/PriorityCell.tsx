@@ -42,25 +42,38 @@ export default function PriorityCell({ value, onChange }: PriorityCellProps) {
       </button>
       
       {isOpen && (
-        <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-w-[150px]">
-          {PRIORITY_OPTIONS.map((priority) => (
-            <button
-              key={priority.value}
-              onClick={() => {
-                onChange(priority.value)
-                setIsOpen(false)
-              }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
-            >
-              <span className={`inline-block px-2 py-1 rounded text-xs ${priority.color}`}>
-                {priority.label}
-              </span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div 
+            className="fixed inset-0 z-[90]" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute z-[100] mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-w-[150px]">
+            {PRIORITY_OPTIONS.map((priority) => (
+              <button
+                key={priority.value}
+                onClick={() => {
+                  onChange(priority.value)
+                  setIsOpen(false)
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
+              >
+                <span className={`inline-block px-2 py-1 rounded text-xs ${priority.color}`}>
+                  {priority.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
 }
+
+
+
+
+
+
+
 
 

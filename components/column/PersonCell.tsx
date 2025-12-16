@@ -86,7 +86,12 @@ export default function PersonCell({ value, onChange, itemId, boardId, itemName 
       </button>
       
       {isOpen && (
-        <div className="absolute z-10 mt-1 bg-[#1A2A1D] border border-[rgba(199,157,69,0.3)] rounded-md shadow-lg min-w-[200px] max-h-[300px] overflow-y-auto">
+        <>
+          <div 
+            className="fixed inset-0 z-[90]" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute z-[100] mt-1 bg-[#1A2A1D] border border-[rgba(199,157,69,0.3)] rounded-md shadow-lg min-w-[200px] max-h-[300px] overflow-y-auto">
           <button
             onClick={() => handleUserChange(null)}
             className="w-full text-left px-3 py-2 hover:bg-[rgba(199,157,69,0.1)] text-sm text-[rgba(255,255,255,0.7)] transition-colors"
@@ -105,7 +110,8 @@ export default function PersonCell({ value, onChange, itemId, boardId, itemName 
               <span className="text-[rgba(255,255,255,0.95)]">{user.name || user.email.split('@')[0]}</span>
             </button>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   )
