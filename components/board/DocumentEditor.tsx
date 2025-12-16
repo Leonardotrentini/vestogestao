@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
+import { TextStyle } from '@tiptap/extension-text-style'
 import { Extension } from '@tiptap/core'
 import Color from '@tiptap/extension-color'
 import TextAlign from '@tiptap/extension-text-align'
