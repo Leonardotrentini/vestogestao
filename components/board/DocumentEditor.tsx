@@ -152,7 +152,7 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-500 underline cursor-pointer hover:text-blue-600',
+          class: 'text-[#C79D45] underline cursor-pointer hover:text-[#D4AD5F]',
         },
       }),
       Underline,
@@ -606,7 +606,8 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
 
       {/* Área do documento - folha branca centralizada */}
       <div 
-        className="flex-1 overflow-auto bg-gray-100 py-8"
+        className="flex-1 overflow-auto py-8"
+        style={{ backgroundColor: '#0F1711' }}
         onClick={() => { 
           setShowLinkModal(false); 
           setShowColorPicker(false);
@@ -614,7 +615,7 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
           setShowFontFamily(false);
         }}
       >
-        <div className="max-w-[816px] mx-auto bg-white shadow-lg min-h-[1056px]">
+        <div className="max-w-[816px] mx-auto bg-white shadow-2xl min-h-[1056px]" style={{ boxShadow: '0 0 20px rgba(0, 0, 0, 0.3)' }}>
           <EditorContent 
             editor={editor}
             className="prose max-w-none"
@@ -679,13 +680,13 @@ export default function DocumentEditor({ boardId, initialContent = '' }: Documen
         }
 
         .ProseMirror a {
-          color: #1155cc;
+          color: #C79D45;
           text-decoration: underline;
           cursor: pointer;
         }
 
         .ProseMirror a:hover {
-          color: #0d47a1;
+          color: #D4AD5F;
         }
 
         .ProseMirror strong {
