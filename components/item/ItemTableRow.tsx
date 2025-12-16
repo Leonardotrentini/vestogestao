@@ -238,12 +238,7 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <div 
-              {...listeners}
-              {...attributes}
-              className="flex items-center gap-2 w-full cursor-grab active:cursor-grabbing"
-              onClick={() => setShowModal(true)}
-            >
+            <div className="flex items-center gap-2 w-full">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -258,7 +253,14 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
                   <ChevronRight className="text-[rgba(255,255,255,0.7)]" size={16} />
                 )}
               </button>
-              <span className="text-sm text-[rgba(255,255,255,0.95)] flex-1">{itemName}</span>
+              <span 
+                {...listeners}
+                {...attributes}
+                className="text-sm text-[rgba(255,255,255,0.95)] flex-1 cursor-grab active:cursor-grabbing"
+                onClick={() => setShowModal(true)}
+              >
+                {itemName}
+              </span>
               {subitemsCount > 0 && (
                 <span className="text-xs bg-[rgba(199,157,69,0.15)] text-[rgba(255,255,255,0.7)] px-2 py-0.5 rounded">
                   {subitemsCount}
