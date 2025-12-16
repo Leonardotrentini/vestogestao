@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { createClient } from '@/lib/supabase/client'
 import { Item, Column, Subitem } from '@/supabase/migrations/types'
-import { X, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react'
+import { X, ChevronDown, ChevronRight, MessageCircle, Pencil } from 'lucide-react'
 import ColumnCell from '../column/ColumnCell'
 import ItemDetailModal from './ItemDetailModal'
 import SubitemRow from './SubitemRow'
@@ -156,13 +156,21 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
   }
 
   const handleNameUpdate = async (newName: string) => {
-    if (newName.trim() && newName !== item.name) {
+    const trimmedName = newName.trim()
+    if (trimmedName && trimmedName !== item.name) {
       await supabase
         .from('items')
-        .update({ name: newName.trim() })
+        .update({ name: trimmedName })
         .eq('id', item.id)
-      setItemName(newName.trim())
+      setItemName(trimmedName)
+      // Atualizar o item.name também para refletir a mudança
+      item.name = trimmedName
     }
+    setIsEditingName(false)
+  }
+
+  const handleCancelEdit = () => {
+    setItemName(item.name)
     setIsEditingName(false)
   }
 
@@ -193,27 +201,30 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
 
         {/* Nome do Item - Área arrastável */}
         <div 
-          {...listeners}
-          {...attributes}
-          className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center cursor-grab active:cursor-grabbing"
-          onClick={() => setShowModal(true)}
-          onDoubleClick={(e) => {
-            e.stopPropagation()
-            setIsEditingName(true)
-          }}
+          className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center"
         >
           {isEditingName ? (
             <input
               type="text"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              onBlur={() => handleNameUpdate(itemName)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  e.preventDefault()
+                  e.stopPropagation()
                   handleNameUpdate(itemName)
                 } else if (e.key === 'Escape') {
-                  setItemName(item.name)
-                  setIsEditingName(false)
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleCancelEdit()
+                }
+              }}
+              onBlur={(e) => {
+                // Só salvar no blur se o valor mudou
+                if (itemName.trim() !== item.name) {
+                  handleNameUpdate(itemName)
+                } else {
+                  handleCancelEdit()
                 }
               }}
               className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1"
@@ -227,9 +238,17 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <div className="flex items-center gap-2 w-full">
+            <div 
+              {...listeners}
+              {...attributes}
+              className="flex items-center gap-2 w-full cursor-grab active:cursor-grabbing"
+              onClick={() => setShowModal(true)}
+            >
               <button
-                onClick={handleToggleExpand}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleToggleExpand(e)
+                }}
                 className="flex-shrink-0 p-0.5 hover:bg-[rgba(199,157,69,0.1)] rounded"
                 title={isExpanded ? "Recolher este elemento" : "Expandir este elemento"}
               >
@@ -239,12 +258,22 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
                   <ChevronRight className="text-[rgba(255,255,255,0.7)]" size={16} />
                 )}
               </button>
-              <span className="text-sm text-[rgba(255,255,255,0.95)] flex-1">{item.name}</span>
+              <span className="text-sm text-[rgba(255,255,255,0.95)] flex-1">{itemName}</span>
               {subitemsCount > 0 && (
                 <span className="text-xs bg-[rgba(199,157,69,0.15)] text-[rgba(255,255,255,0.7)] px-2 py-0.5 rounded">
                   {subitemsCount}
                 </span>
               )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditingName(true)
+                }}
+                className="opacity-0 group-hover/item-row:opacity-100 flex-shrink-0 p-1 hover:bg-[rgba(199,157,69,0.1)] rounded transition-opacity"
+                title="Editar nome"
+              >
+                <Pencil className="text-[rgba(255,255,255,0.7)]" size={14} />
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
