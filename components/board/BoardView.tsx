@@ -7,6 +7,7 @@ import BoardTable from './BoardTable'
 import BoardKanbanView from './BoardKanbanView'
 import BoardHeader from './BoardHeader'
 import DocumentEditor from './DocumentEditor'
+import { GroupSkeleton } from '@/components/common/Skeleton'
 
 interface BoardViewProps {
   boardId: string
@@ -96,15 +97,21 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   }
 
   const handleCreateGroup = async (name: string) => {
-    const maxPosition = groups.length > 0 ? Math.max(...groups.map(g => g.position)) : 0
+    try {
+      const maxPosition = groups.length > 0 ? Math.max(...groups.map(g => g.position)) : 0
 
-    await supabase.from('groups').insert({
-      name,
-      board_id: boardId,
-      position: maxPosition + 1,
-    })
+      const { error } = await supabase.from('groups').insert({
+        name,
+        board_id: boardId,
+        position: maxPosition + 1,
+      })
 
-    loadData()
+      if (error) throw error
+
+      loadData()
+    } catch (error) {
+      console.error('Erro ao criar grupo:', error)
+    }
   }
 
   const handleCreateItem = async (groupId: string, name: string) => {
@@ -138,7 +145,28 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   }
 
   if (loading) {
-    return <div className="p-8 text-[rgba(255,255,255,0.7)]">Carregando...</div>
+    return (
+      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+        <BoardHeader 
+          boardName={boardName} 
+          onCreateGroup={handleCreateGroup}
+          boardId={boardId}
+          workspaceId={workspaceId}
+          columns={columns}
+          onColumnsChange={loadData}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          isDocument={boardType === 'document'}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+        <div className="flex-1 overflow-auto p-6">
+          <GroupSkeleton />
+          <GroupSkeleton />
+          <GroupSkeleton />
+        </div>
+      </div>
+    )
   }
 
   // Se for documento, renderizar editor de texto
@@ -205,13 +233,15 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
       />
       {normalizedSearch && filteredItems.length === 0 && (
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center">
-            <p className="text-[rgba(255,255,255,0.7)] mb-2">
-              Nenhum resultado encontrado para <span className="text-[#C79D45] font-medium">"{searchTerm}"</span>
+          <div className="text-center space-y-4">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-[rgba(255,255,255,0.7)] text-base mb-1">
+              Nenhum resultado encontrado para
             </p>
+            <p className="text-[#C79D45] font-medium text-lg mb-4">"{searchTerm}"</p>
             <button
               onClick={() => setSearchTerm('')}
-              className="text-[#C79D45] hover:text-[#D4AD5F] text-sm underline"
+              className="text-[#C79D45] hover:text-[#D4AD5F] text-sm underline transition-colors px-4 py-2 hover:bg-[rgba(199,157,69,0.1)] rounded-lg"
             >
               Limpar busca
             </button>

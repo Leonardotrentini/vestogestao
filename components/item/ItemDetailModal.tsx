@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Item, Column, ColumnValue, Subitem, Comment } from '@/supabase/migrations/types'
-import { X, MessageSquare, FileText, Activity, Pencil, Check, X as XIcon } from 'lucide-react'
+import { X, MessageSquare, FileText, Activity, Pencil, Check, X as XIcon, Copy } from 'lucide-react'
 import { getDefaultUserId } from '@/lib/utils'
 import { format } from 'date-fns'
 import MentionInput from '@/components/common/MentionInput'
@@ -183,6 +183,102 @@ export default function ItemDetailModal({
     setIsEditingName(false)
   }
 
+  const handleDuplicateItem = async () => {
+    try {
+      // Buscar o grupo atual do item para obter o group_id
+      const { data: currentGroup } = await supabase
+        .from('items')
+        .select('group_id')
+        .eq('id', item.id)
+        .single()
+
+      if (!currentGroup) {
+        alert('Erro: Não foi possível encontrar o grupo do item')
+        return
+      }
+
+      // Buscar a posição máxima dos itens no grupo
+      const { data: itemsInGroup } = await supabase
+        .from('items')
+        .select('position')
+        .eq('group_id', currentGroup.group_id)
+        .order('position', { ascending: false })
+        .limit(1)
+
+      const maxPosition = itemsInGroup && itemsInGroup.length > 0 
+        ? itemsInGroup[0].position + 1 
+        : 0
+
+      // Criar novo item
+      const { data: newItem, error: itemError } = await supabase
+        .from('items')
+        .insert([
+          {
+            name: `${item.name} (cópia)`,
+            group_id: currentGroup.group_id,
+            position: maxPosition,
+            user_id: defaultUserId,
+          },
+        ])
+        .select()
+        .single()
+
+      if (itemError || !newItem) {
+        console.error('Erro ao duplicar item:', itemError)
+        alert('Erro ao duplicar item')
+        return
+      }
+
+      // Duplicar column values
+      const { data: columnValues } = await supabase
+        .from('column_values')
+        .select('*')
+        .eq('item_id', item.id)
+
+      if (columnValues) {
+        for (const cv of columnValues) {
+          await supabase.from('column_values').insert([
+            {
+              item_id: newItem.id,
+              column_id: cv.column_id,
+              value: cv.value,
+            },
+          ])
+        }
+      }
+
+      // Duplicar subitems
+      const { data: subitems } = await supabase
+        .from('subitems')
+        .select('*')
+        .eq('item_id', item.id)
+        .order('position')
+
+      if (subitems) {
+        for (const subitem of subitems) {
+          await supabase.from('subitems').insert([
+            {
+              name: subitem.name,
+              item_id: newItem.id,
+              position: subitem.position,
+              is_completed: subitem.is_completed,
+            },
+          ])
+        }
+      }
+
+      // Fechar modal e atualizar
+      onUpdate?.()
+      onClose()
+      
+      // Opcional: abrir o novo item duplicado (comentado por enquanto)
+      // Você pode implementar uma navegação para o novo item se desejar
+    } catch (error) {
+      console.error('Erro ao duplicar item:', error)
+      alert('Erro ao duplicar item')
+    }
+  }
+
   const handleStartEditComment = (comment: Comment) => {
     setEditingCommentId(comment.id)
     setEditingCommentContent(comment.content)
@@ -248,12 +344,22 @@ export default function ItemDetailModal({
               {item.name}
             </h2>
           )}
-          <button
-            onClick={onClose}
-            className="text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)] rounded p-1 transition-colors"
-          >
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDuplicateItem}
+              className="text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)] rounded p-2 transition-colors flex items-center gap-2"
+              title="Duplicar item"
+            >
+              <Copy size={18} />
+              <span className="text-sm">Duplicar</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)] rounded p-1 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -345,7 +451,11 @@ export default function ItemDetailModal({
               {/* Lista de comentários */}
               <div className="space-y-4">
                 {comments.length === 0 ? (
-                  <p className="text-[rgba(255,255,255,0.7)] text-center py-8">Nenhuma atualização ainda</p>
+                  <div className="text-center py-12">
+                    <div className="text-5xl mb-4">💬</div>
+                    <p className="text-[rgba(255,255,255,0.7)] text-base mb-2">Nenhuma atualização ainda</p>
+                    <p className="text-[rgba(255,255,255,0.5)] text-sm">Seja o primeiro a comentar!</p>
+                  </div>
                 ) : (
                   comments.map((comment) => (
                     <div key={comment.id} className="border-b border-[rgba(199,157,69,0.2)] pb-4 group/comment">
@@ -428,7 +538,11 @@ export default function ItemDetailModal({
               
               <div className="space-y-2 mb-4">
                 {subitems.length === 0 ? (
-                  <p className="text-[rgba(255,255,255,0.7)] text-center py-8">Nenhum subitem ainda</p>
+                  <div className="text-center py-12">
+                    <div className="text-5xl mb-4">📝</div>
+                    <p className="text-[rgba(255,255,255,0.7)] text-base mb-2">Nenhum subitem ainda</p>
+                    <p className="text-[rgba(255,255,255,0.5)] text-sm">Adicione subitens para dividir a tarefa em etapas</p>
+                  </div>
                 ) : (
                   subitems.map((subitem) => (
                     <div
@@ -441,9 +555,7 @@ export default function ItemDetailModal({
                         onChange={() => handleToggleSubitem(subitem.id, subitem.is_completed)}
                         className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded"
                       />
-                      <span
-                        className={`flex-1 ${subitem.is_completed ? 'line-through text-[rgba(255,255,255,0.5)]' : 'text-[rgba(255,255,255,0.95)]'}`}
-                      >
+                      <span className="flex-1 text-[rgba(255,255,255,0.95)]">
                         {subitem.name}
                       </span>
                       <button

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, LayoutGrid, Table, Search, X } from 'lucide-react'
 import { Column } from '@/supabase/migrations/types'
 import ColumnsManager from './ColumnsManager'
 import SeedGestaoClientesButton from '@/components/workspace/SeedGestaoClientesButton'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/components/common/ToastProvider'
 
 interface BoardHeaderProps {
   boardName?: string
@@ -23,13 +25,35 @@ interface BoardHeaderProps {
 export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false, searchTerm = '', onSearchChange }: BoardHeaderProps) {
   const [showGroupInput, setShowGroupInput] = useState(false)
   const [groupName, setGroupName] = useState('')
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false)
+  const { showSuccess, showError } = useToast()
+  
+  // Debounce na busca
+  const debouncedSearchTerm = useDebounce(localSearchTerm, 300)
+  
+  useEffect(() => {
+    onSearchChange?.(debouncedSearchTerm)
+  }, [debouncedSearchTerm, onSearchChange])
 
-  const handleCreateGroup = (e: React.FormEvent) => {
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm)
+  }, [searchTerm])
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (groupName.trim()) {
-      onCreateGroup(groupName.trim())
-      setGroupName('')
-      setShowGroupInput(false)
+    if (groupName.trim() && !isCreatingGroup) {
+      setIsCreatingGroup(true)
+      try {
+        onCreateGroup(groupName.trim())
+        setGroupName('')
+        setShowGroupInput(false)
+        showSuccess('Grupo criado com sucesso!')
+      } catch (error) {
+        showError('Erro ao criar grupo')
+      } finally {
+        setIsCreatingGroup(false)
+      }
     }
   }
 
@@ -47,14 +71,17 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
               <Search size={16} className="text-[rgba(255,255,255,0.8)] flex-shrink-0" />
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
+                value={localSearchTerm}
+                onChange={(e) => setLocalSearchTerm(e.target.value)}
                 placeholder="Buscar neste quadro"
                 className="flex-1 bg-transparent text-sm text-[rgba(255,255,255,0.95)] placeholder:text-[rgba(255,255,255,0.5)] focus:outline-none"
               />
-              {searchTerm && (
+              {localSearchTerm && (
                 <button
-                  onClick={() => onSearchChange('')}
+                  onClick={() => {
+                    setLocalSearchTerm('')
+                    onSearchChange?.('')
+                  }}
                   className="flex-shrink-0 p-1 hover:bg-[rgba(199,157,69,0.2)] rounded transition-colors"
                   title="Limpar busca"
                 >
@@ -125,9 +152,10 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
               />
               <button
                 type="submit"
-                className="bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-3 py-1.5 rounded text-sm font-semibold hover:from-[#D4AD5F] hover:to-[#E5C485] transition-all shadow-[0_4px_16px_rgba(199,157,69,0.25)]"
+                disabled={isCreatingGroup}
+                className="bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-3 py-1.5 rounded text-sm font-semibold hover:from-[#D4AD5F] hover:to-[#E5C485] transition-all shadow-[0_4px_16px_rgba(199,157,69,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Criar
+                {isCreatingGroup ? 'Criando...' : 'Criar'}
               </button>
               <button
                 type="button"
