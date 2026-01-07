@@ -234,3 +234,11 @@ Quadro para gestão comercial e vendas, rastreando apresentações, negociaçõe
 5. ⏳ Adicionar exemplos de dados em cada quadro
 
 
+
+
+
+
+
+
+
+

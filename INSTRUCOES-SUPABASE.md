@@ -73,3 +73,11 @@ Se der erro ao executar os SQLs:
 **Execute os 2 SQLs e me avise quando terminar!** 🎯
 
 
+
+
+
+
+
+
+
+

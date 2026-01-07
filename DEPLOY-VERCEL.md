@@ -122,3 +122,11 @@ Antes de fazer deploy, confirme:
 - **Documentação Next.js:** https://nextjs.org/docs
 - **Documentação Supabase:** https://supabase.com/docs
 
+
+
+
+
+
+
+
+

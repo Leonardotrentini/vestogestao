@@ -149,3 +149,11 @@ Depois você pode:
 Veja `INSTRUCOES-SUPABASE.md` para instruções detalhadas.
 
 
+
+
+
+
+
+
+
+

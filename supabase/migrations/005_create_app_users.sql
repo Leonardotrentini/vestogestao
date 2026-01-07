@@ -14,3 +14,11 @@ CREATE INDEX IF NOT EXISTS idx_app_users_email ON app_users(email);
 -- Índice para busca rápida por auth_user_id
 CREATE INDEX IF NOT EXISTS idx_app_users_auth_user_id ON app_users(auth_user_id);
 
+
+
+
+
+
+
+
+

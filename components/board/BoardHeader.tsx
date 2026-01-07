@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, LayoutGrid, Table, Search, X } from 'lucide-react'
+import { Plus, LayoutGrid, Table, Search, X, BarChart3 } from 'lucide-react'
 import { Column } from '@/supabase/migrations/types'
 import ColumnsManager from './ColumnsManager'
 import SeedGestaoClientesButton from '@/components/workspace/SeedGestaoClientesButton'
@@ -15,8 +15,8 @@ interface BoardHeaderProps {
   workspaceId?: string
   columns?: Column[]
   onColumnsChange?: () => void
-  viewMode?: 'table' | 'kanban'
-  onViewModeChange?: (mode: 'table' | 'kanban') => void
+  viewMode?: 'table' | 'kanban' | 'charts'
+  onViewModeChange?: (mode: 'table' | 'kanban' | 'charts') => void
   isDocument?: boolean
   searchTerm?: string
   onSearchChange?: (value: string) => void
@@ -120,6 +120,20 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
                 <div className="flex items-center gap-2">
                   <LayoutGrid size={16} />
                   <span>Kanban</span>
+                </div>
+              </button>
+              <button
+                onClick={() => onViewModeChange('charts')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'charts'
+                    ? 'bg-[rgba(199,157,69,0.2)] text-[#C79D45] shadow-sm border border-[rgba(199,157,69,0.4)]'
+                    : 'text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]'
+                }`}
+                title="Visualizações e Gráficos"
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 size={16} />
+                  <span>Gráficos</span>
                 </div>
               </button>
             </div>

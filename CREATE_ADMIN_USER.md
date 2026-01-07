@@ -131,3 +131,11 @@ WHERE email = 'leozikao50@gmail.com';
 - Use o Dashboard ou a API Admin (com Service Role Key)
 - Nunca compartilhe a Service Role Key publicamente
 
+
+
+
+
+
+
+
+

@@ -3,16 +3,18 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useParams } from 'next/navigation'
-import { LayoutDashboard, FileText, ArrowLeft, Upload } from 'lucide-react'
+import { LayoutDashboard, FileText, ArrowLeft, Upload, BarChart3, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import IntelligentImportWizard from '@/components/import/IntelligentImportWizard'
 
 export default function NewBoardPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [boardType, setBoardType] = useState<'board' | 'document'>('board')
+  const [boardType, setBoardType] = useState<'board' | 'document' | 'intelligence'>('board')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
+  const [showIntelligentImport, setShowIntelligentImport] = useState(false)
   const router = useRouter()
   const params = useParams()
   const workspaceId = params?.workspaceId as string
@@ -21,16 +23,36 @@ export default function NewBoardPage() {
   // Função para converter Excel para formato de board
   const convertExcelToBoard = (excelData: any[][], defaultName: string) => {
     if (!excelData || excelData.length === 0) {
-      throw new Error('Planilha vazia')
+      throw new Error('Planilha vazia ou sem dados')
     }
 
     // Primeira linha pode ser cabeçalho
     const headers = excelData[0] || []
-    const rows = excelData.slice(1).filter(row => row.some(cell => cell !== '' && cell != null))
+    
+    // Filtrar linhas vazias e garantir que há dados
+    const rows = excelData.slice(1).filter(row => {
+      return row && Array.isArray(row) && row.some(cell => {
+        const cellValue = cell?.toString().trim()
+        return cellValue && cellValue !== '' && cellValue !== 'undefined' && cellValue !== 'null'
+      })
+    })
+
+    if (rows.length === 0) {
+      throw new Error('Planilha não contém dados (apenas cabeçalhos vazios)')
+    }
+
+    if (headers.length === 0 || headers.every((h: any) => !h || h.toString().trim() === '')) {
+      throw new Error('Planilha não possui cabeçalhos válidos')
+    }
 
     // Criar estrutura de board
+    // Garantir que o nome não seja vazio
+    const boardName = defaultName && defaultName.trim() !== '' 
+      ? defaultName.trim() 
+      : `Quadro Importado - ${new Date().toLocaleDateString('pt-BR')}`
+    
     const boardData: any = {
-      name: defaultName,
+      name: boardName,
       type: 'board',
       columns: [],
       groups: []
@@ -145,6 +167,18 @@ export default function NewBoardPage() {
       const { getDefaultUserId } = await import('@/lib/utils')
       const defaultUserId = getDefaultUserId()
 
+      // Buscar o maior position atual para definir a posição do novo board
+      const { data: existingBoards } = await supabase
+        .from('boards')
+        .select('position')
+        .eq('workspace_id', workspaceId)
+        .order('position', { ascending: false })
+        .limit(1)
+
+      const maxPosition = existingBoards && existingBoards.length > 0 
+        ? (existingBoards[0].position || 0) 
+        : -1
+
       // Inserir board com o tipo especificado
       const { data, error: insertError } = await supabase
         .from('boards')
@@ -155,7 +189,8 @@ export default function NewBoardPage() {
             workspace_id: workspaceId,
             user_id: defaultUserId,
             type: boardType,
-            content: boardType === 'document' ? '' : null,
+            content: boardType === 'document' ? '' : (boardType === 'intelligence' ? null : null),
+            position: maxPosition + 1,
           },
         ])
         .select()
@@ -174,7 +209,7 @@ export default function NewBoardPage() {
         return
       }
 
-      // Criar colunas padrão apenas se for um board (não documento)
+      // Criar colunas padrão apenas se for um board (não documento nem intelligence)
       if (boardType === 'board') {
         const defaultColumns = [
           { name: 'Pessoa', type: 'person', position: 1 },
@@ -240,24 +275,31 @@ export default function NewBoardPage() {
         importedData = JSON.parse(text)
       }
 
-      // Para Excel, o nome já vem do convertExcelToBoard
-      // Para JSON, validar estrutura
-      if (!importedData.name) {
-        throw new Error('Formato de arquivo inválido. O arquivo deve conter um nome.')
+      // Validar estrutura
+      if (!importedData || typeof importedData !== 'object') {
+        throw new Error('Formato de arquivo inválido. Não foi possível processar os dados.')
+      }
+
+      // Garantir que há um nome
+      if (!importedData.name || importedData.name.trim() === '') {
+        const fileName = file.name.replace(/\.(xlsx|xls|json)$/i, '')
+        importedData.name = fileName || `Quadro Importado - ${new Date().toLocaleDateString('pt-BR')}`
       }
 
       const { getDefaultUserId } = await import('@/lib/utils')
       const defaultUserId = getDefaultUserId()
 
-      // Criar o board (sem type - campo será adicionado depois da migration)
+      // Criar o board com o tipo do boardType selecionado
       const { data: boardData, error: boardError } = await supabase
         .from('boards')
         .insert([
           {
-            name: importedData.name,
-            description: importedData.description || null,
+            name: importedData.name.trim(),
+            description: importedData.description?.trim() || null,
             workspace_id: workspaceId,
             user_id: defaultUserId,
+            type: boardType, // Usar o tipo selecionado
+            content: boardType === 'document' ? '' : null,
           },
         ])
         .select()
@@ -372,7 +414,23 @@ export default function NewBoardPage() {
       router.refresh()
     } catch (err: any) {
       console.error('Error importing:', err)
-      setError(`Erro ao importar: ${err.message || 'Formato de arquivo inválido'}`)
+      
+      // Mensagens de erro mais amigáveis
+      let errorMessage = 'Erro ao importar arquivo'
+      
+      if (err.message) {
+        if (err.message.includes('vazia')) {
+          errorMessage = 'A planilha está vazia. Certifique-se de que há dados abaixo dos cabeçalhos.'
+        } else if (err.message.includes('cabeçalhos')) {
+          errorMessage = 'A planilha não possui cabeçalhos válidos. A primeira linha deve conter os nomes das colunas.'
+        } else if (err.message.includes('processar')) {
+          errorMessage = 'Não foi possível processar o arquivo. Verifique se o formato está correto (.xlsx ou .xls).'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setError(errorMessage)
       setLoading(false)
     }
 
@@ -419,7 +477,7 @@ export default function NewBoardPage() {
           <label className="block text-sm font-medium text-[rgba(255,255,255,0.7)] mb-3 uppercase tracking-wide">
             Tipo de Quadro
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <button
               type="button"
               onClick={() => setBoardType('board')}
@@ -464,7 +522,32 @@ export default function NewBoardPage() {
                     Documento
                   </div>
                   <div className="text-xs text-[rgba(255,255,255,0.5)]">
-                    Como "Links Úteis"
+                    Editor de texto
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBoardType('intelligence')}
+              className={`p-6 rounded-lg border-2 transition-all ${
+                boardType === 'intelligence'
+                  ? 'border-[#C79D45] bg-[rgba(199,157,69,0.15)]'
+                  : 'border-[rgba(199,157,69,0.2)] bg-[rgba(26,42,29,0.7)] hover:border-[rgba(199,157,69,0.4)]'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <BarChart3 
+                  size={32} 
+                  className={boardType === 'intelligence' ? 'text-[#C79D45]' : 'text-[rgba(255,255,255,0.5)]'} 
+                />
+                <div className="text-center">
+                  <div className={`font-semibold mb-1 ${boardType === 'intelligence' ? 'text-[rgba(255,255,255,0.95)]' : 'text-[rgba(255,255,255,0.7)]'}`}>
+                    Inteligência
+                  </div>
+                  <div className="text-xs text-[rgba(255,255,255,0.5)]">
+                    Analytics & BI
                   </div>
                 </div>
               </div>
@@ -477,19 +560,38 @@ export default function NewBoardPage() {
           <label className="block text-sm font-medium text-[rgba(255,255,255,0.7)] mb-3 uppercase tracking-wide">
             Ou importe um quadro
           </label>
-          <label className="flex items-center justify-center gap-3 p-6 bg-[rgba(26,42,29,0.7)] backdrop-blur-xl rounded-lg border-2 border-dashed border-[rgba(199,157,69,0.3)] hover:border-[rgba(199,157,69,0.5)] cursor-pointer transition-all">
-            <Upload size={20} className="text-[#C79D45]" />
-            <span className="text-[rgba(255,255,255,0.95)] font-medium">Importar Quadro (Excel/JSON)</span>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.json"
-              onChange={handleImport}
-              className="hidden"
-              disabled={loading}
-            />
-          </label>
+          <div className="grid grid-cols-1 gap-3">
+            {/* Importação Inteligente com IA */}
+            <button
+              onClick={() => setShowIntelligentImport(true)}
+              className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-[#C79D45]/20 to-[#D4AD5F]/20 backdrop-blur-xl rounded-lg border-2 border-[#C79D45] hover:border-[#D4AD5F] cursor-pointer transition-all group"
+            >
+              <Sparkles size={24} className="text-[#C79D45] group-hover:text-[#D4AD5F]" />
+              <div className="text-left">
+                <span className="text-[rgba(255,255,255,0.95)] font-semibold block">
+                  🤖 Importação Inteligente com IA
+                </span>
+                <span className="text-xs text-[rgba(255,255,255,0.7)] block mt-1">
+                  Descreva o que quer e a IA cria tudo automaticamente
+                </span>
+              </div>
+            </button>
+
+            {/* Importação Manual (tradicional) */}
+            <label className="flex items-center justify-center gap-3 p-6 bg-[rgba(26,42,29,0.7)] backdrop-blur-xl rounded-lg border-2 border-dashed border-[rgba(199,157,69,0.3)] hover:border-[rgba(199,157,69,0.5)] cursor-pointer transition-all">
+              <Upload size={20} className="text-[rgba(255,255,255,0.7)]" />
+              <span className="text-[rgba(255,255,255,0.95)] font-medium">Importar Manualmente (Excel/JSON)</span>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.json"
+                onChange={handleImport}
+                className="hidden"
+                disabled={loading}
+              />
+            </label>
+          </div>
           <p className="text-xs text-[rgba(255,255,255,0.5)] mt-2 text-center">
-            Selecione um arquivo Excel (.xlsx, .xls) ou JSON exportado de outro quadro
+            Use a importação inteligente para criar automaticamente baseado na sua descrição
           </p>
         </div>
 
@@ -511,7 +613,13 @@ export default function NewBoardPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 border border-[rgba(199,157,69,0.2)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C79D45] focus:border-[#C79D45] transition-all input-white-text"
-              placeholder={boardType === 'document' ? 'Ex: Links Úteis' : 'Ex: Web Designer - Clientes'}
+              placeholder={
+                boardType === 'document' 
+                  ? 'Ex: Links Úteis' 
+                  : boardType === 'intelligence'
+                  ? 'Ex: Dashboard de Performance'
+                  : 'Ex: Web Designer - Clientes'
+              }
               style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.2)',
                 color: 'rgba(255, 255, 255, 0.95)'
@@ -571,7 +679,13 @@ export default function NewBoardPage() {
               disabled={loading}
               className="flex-1 bg-gradient-to-r from-[#C79D45] to-[#D4AD5F] text-[#0F1711] px-6 py-3 rounded-lg hover:from-[#D4AD5F] hover:to-[#E5C485] disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-[0_4px_16px_rgba(199,157,69,0.25)]"
             >
-              {loading ? 'Criando...' : `Criar ${boardType === 'document' ? 'Documento' : 'Quadro'}`}
+              {loading ? 'Criando...' : `Criar ${
+                boardType === 'document' 
+                  ? 'Documento' 
+                  : boardType === 'intelligence'
+                  ? 'Quadro de Inteligência'
+                  : 'Quadro'
+              }`}
             </button>
             <button
               type="button"
@@ -582,6 +696,36 @@ export default function NewBoardPage() {
             </button>
           </div>
         </form>
+
+        {/* Modal de Importação Inteligente */}
+        {showIntelligentImport && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1A2A1D] rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[rgba(199,157,69,0.3)]">
+              <div className="sticky top-0 bg-[#1A2A1D] border-b border-[rgba(199,157,69,0.2)] px-6 py-4 flex items-center justify-between z-10">
+                <h2 className="text-xl font-semibold text-[rgba(255,255,255,0.95)]">
+                  Importação Inteligente
+                </h2>
+                <button
+                  onClick={() => setShowIntelligentImport(false)}
+                  className="text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] transition-colors"
+                >
+                  <ArrowLeft size={24} />
+                </button>
+              </div>
+              <div className="p-6">
+                <IntelligentImportWizard
+                  workspaceId={workspaceId}
+                  onComplete={(boardId) => {
+                    setShowIntelligentImport(false)
+                    router.push(`/workspaces/${workspaceId}/boards/${boardId}`)
+                    router.refresh()
+                  }}
+                  onCancel={() => setShowIntelligentImport(false)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

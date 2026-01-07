@@ -88,3 +88,11 @@ npm run lint
 **Dúvidas?** Consulte `SETUP.md` para guia completo ou `README.md` para documentação geral.
 
 
+
+
+
+
+
+
+
+

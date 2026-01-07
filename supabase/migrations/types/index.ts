@@ -12,7 +12,8 @@ export interface Board {
   name: string
   description?: string
   workspace_id: string
-  type?: 'board' | 'document'
+  type?: 'board' | 'document' | 'mindmap' | 'intelligence'
+  position?: number
   created_at: string
   updated_at: string
   user_id: string

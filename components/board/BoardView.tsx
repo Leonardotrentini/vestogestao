@@ -7,13 +7,15 @@ import BoardTable from './BoardTable'
 import BoardKanbanView from './BoardKanbanView'
 import BoardHeader from './BoardHeader'
 import DocumentEditor from './DocumentEditor'
+import IntelligenceBoard from '@/components/analytics/IntelligenceBoard'
+import BoardVisualizations from './BoardVisualizations'
 import { GroupSkeleton } from '@/components/common/Skeleton'
 
 interface BoardViewProps {
   boardId: string
   workspaceId: string
   boardName?: string
-  boardType?: 'board' | 'document'
+  boardType?: 'board' | 'document' | 'intelligence'
   boardContent?: string
 }
 
@@ -21,8 +23,9 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   const [groups, setGroups] = useState<Group[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [columns, setColumns] = useState<Column[]>([])
+  const [columnValues, setColumnValues] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
+  const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'charts'>('table')
   const [searchTerm, setSearchTerm] = useState('')
   const supabase = createClient()
 
@@ -90,9 +93,17 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
       .eq('board_id', boardId)
       .order('position', { ascending: true })
 
+    // Carregar valores das colunas
+    const itemIds = itemsData?.map(i => i.id) || []
+    const { data: columnValuesData } = await supabase
+      .from('column_values')
+      .select('*')
+      .in('item_id', itemIds.length > 0 ? itemIds : ['00000000-0000-0000-0000-000000000000'])
+
     setGroups(groupsData || [])
     setItems(itemsData || [])
     setColumns(columnsData || [])
+    setColumnValues(columnValuesData || [])
     setLoading(false)
   }
 
@@ -191,6 +202,28 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     )
   }
 
+  // Se for intelligence board, renderizar dashboard de analytics
+  if (boardType === 'intelligence') {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+        <BoardHeader 
+          boardName={boardName} 
+          onCreateGroup={handleCreateGroup}
+          boardId={boardId}
+          workspaceId={workspaceId}
+          columns={columns}
+          onColumnsChange={loadData}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          isDocument={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+        <IntelligenceBoard workspaceId={workspaceId} />
+      </div>
+    )
+  }
+
   const normalizedSearch = searchTerm.trim().toLowerCase()
   
   // Filtrar itens baseado no termo de pesquisa
@@ -249,7 +282,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         </div>
       )}
       {(!normalizedSearch || filteredItems.length > 0) && (
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           {viewMode === 'table' ? (
             <BoardTable
               groups={filteredGroups}
@@ -259,6 +292,12 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
               onCreateItem={handleCreateItem}
               onMoveItem={handleMoveItem}
               boardId={boardId}
+            />
+          ) : viewMode === 'charts' ? (
+            <BoardVisualizations
+              items={filteredItems}
+              columns={columns}
+              columnValues={columnValues}
             />
           ) : (
             <BoardKanbanView

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { createClient } from '@/lib/supabase/client'
 import { Subitem, Column } from '@/supabase/migrations/types'
 import { MessageCircle } from 'lucide-react'
@@ -20,6 +22,23 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
   const [columnValues, setColumnValues] = useState<Record<string, any>>({})
   const [commentsCount, setCommentsCount] = useState(0)
   const supabase = createClient()
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `subitem-${subitem.id}`,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
 
   useEffect(() => {
     loadColumnValues()
@@ -85,7 +104,11 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
   }
 
   return (
-    <div className="flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors">
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className={`flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors ${isDragging ? 'opacity-50' : ''}`}
+    >
       {/* Checkbox */}
       <div className="w-8 flex-shrink-0 px-2 py-2 flex items-center border-r border-[rgba(199,157,69,0.2)]">
         <input
@@ -98,13 +121,18 @@ export default function SubitemRow({ subitem, columns, boardId, onUpdate, onOpen
               .eq('id', subitem.id)
             onUpdate()
           }}
+          onClick={(e) => e.stopPropagation()}
           className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded"
         />
       </div>
 
-      {/* Nome do Subitem */}
+      {/* Nome do Subitem - Área arrastável */}
       <div className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center gap-2">
-        <span className={`text-sm flex-1 ${subitem.is_completed ? 'line-through text-[rgba(255,255,255,0.5)]' : 'text-[rgba(255,255,255,0.95)]'}`}>
+        <span 
+          {...listeners}
+          {...attributes}
+          className="text-sm flex-1 text-[rgba(255,255,255,0.95)] cursor-grab active:cursor-grabbing"
+        >
           {subitem.name}
         </span>
         <button

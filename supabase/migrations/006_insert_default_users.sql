@@ -14,3 +14,11 @@ SELECT id, email, name, auth_user_id, created_at
 FROM app_users 
 ORDER BY name;
 
+
+
+
+
+
+
+
+

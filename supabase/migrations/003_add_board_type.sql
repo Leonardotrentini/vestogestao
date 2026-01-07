@@ -5,3 +5,11 @@ ALTER TABLE boards ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'board' CHECK (typ
 UPDATE boards SET type = 'board' WHERE type IS NULL;
 
 
+
+
+
+
+
+
+
+

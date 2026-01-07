@@ -220,3 +220,11 @@ UPDATE boards SET type = 'board' WHERE type IS NULL;
 -- Agora você pode usar a aplicação normalmente
 -- ============================================
 
+
+
+
+
+
+
+
+
