@@ -102,8 +102,14 @@ export default async function Home() {
     }
 
     // Redirecionar para o workspace (que já redireciona para o primeiro board)
+    // O redirect() lança uma exceção especial que não deve ser capturada
     redirect(`/workspaces/${workspace.id}`)
   } catch (error: any) {
+    // Ignorar erros de redirect do Next.js
+    if (error.message === 'NEXT_REDIRECT' || error.digest?.startsWith('NEXT_REDIRECT')) {
+      throw error
+    }
+    
     console.error('Erro na página inicial:', error)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
