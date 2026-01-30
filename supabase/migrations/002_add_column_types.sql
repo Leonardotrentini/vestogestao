@@ -31,3 +31,4 @@ COMMENT ON COLUMN columns.type IS 'Tipo de coluna: text, status, person, priorit
 
 
 
+

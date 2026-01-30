@@ -92,3 +92,4 @@ ALTER TABLE boards ADD COLUMN IF NOT EXISTS content TEXT;
 4. Execute novamente a query de verificação
 
 
+

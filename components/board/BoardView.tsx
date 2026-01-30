@@ -8,6 +8,7 @@ import BoardKanbanView from './BoardKanbanView'
 import BoardHeader from './BoardHeader'
 import DocumentEditor from './DocumentEditor'
 import IntelligenceBoard from '@/components/analytics/IntelligenceBoard'
+import PerformanceDashboard from '@/components/analytics/PerformanceDashboard'
 import BoardVisualizations from './BoardVisualizations'
 import { GroupSkeleton } from '@/components/common/Skeleton'
 
@@ -15,7 +16,7 @@ interface BoardViewProps {
   boardId: string
   workspaceId: string
   boardName?: string
-  boardType?: 'board' | 'document' | 'intelligence'
+  boardType?: 'board' | 'document' | 'intelligence' | 'dashboard'
   boardContent?: string
 }
 
@@ -220,6 +221,30 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           onSearchChange={setSearchTerm}
         />
         <IntelligenceBoard workspaceId={workspaceId} />
+      </div>
+    )
+  }
+
+  // Se for dashboard board, renderizar dashboard de performance
+  if (boardType === 'dashboard') {
+    // Extrair spreadsheetId do boardContent se existir
+    let spreadsheetId: string | undefined
+    try {
+      if (boardContent) {
+        const content = JSON.parse(boardContent)
+        spreadsheetId = content.spreadsheetId
+      }
+    } catch {
+      // Se não for JSON válido, ignora
+    }
+
+    return (
+      <div className="flex flex-col min-h-screen">
+        <PerformanceDashboard 
+          boardId={boardId} 
+          workspaceId={workspaceId}
+          spreadsheetId={spreadsheetId}
+        />
       </div>
     )
   }

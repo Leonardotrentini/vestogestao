@@ -15,3 +15,4 @@ FROM (
 ) AS subquery
 WHERE boards.id = subquery.id;
 
+

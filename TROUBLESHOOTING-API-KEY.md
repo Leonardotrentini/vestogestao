@@ -76,3 +76,4 @@ console.log('API Key configurada?', !!process.env.OPENAI_API_KEY)
 
 **⚠️ NUNCA faça commit com logs de debug que mostrem a API key!**
 
+

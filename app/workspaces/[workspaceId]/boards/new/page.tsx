@@ -11,7 +11,8 @@ import IntelligentImportWizard from '@/components/import/IntelligentImportWizard
 export default function NewBoardPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [boardType, setBoardType] = useState<'board' | 'document' | 'intelligence'>('board')
+  const [boardType, setBoardType] = useState<'board' | 'document' | 'intelligence' | 'dashboard'>('board')
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
   const [showIntelligentImport, setShowIntelligentImport] = useState(false)
@@ -179,6 +180,18 @@ export default function NewBoardPage() {
         ? (existingBoards[0].position || 0) 
         : -1
 
+      // Processar spreadsheetId se for dashboard
+      let boardContent = null
+      if (boardType === 'dashboard' && spreadsheetUrl.trim()) {
+        const { extractSpreadsheetId } = await import('@/lib/google-sheets/client')
+        const spreadsheetId = extractSpreadsheetId(spreadsheetUrl.trim())
+        if (spreadsheetId) {
+          boardContent = JSON.stringify({ spreadsheetId })
+        }
+      } else if (boardType === 'document') {
+        boardContent = ''
+      }
+
       // Inserir board com o tipo especificado
       const { data, error: insertError } = await supabase
         .from('boards')
@@ -189,7 +202,7 @@ export default function NewBoardPage() {
             workspace_id: workspaceId,
             user_id: defaultUserId,
             type: boardType,
-            content: boardType === 'document' ? '' : (boardType === 'intelligence' ? null : null),
+            content: boardContent,
             position: maxPosition + 1,
           },
         ])
@@ -477,7 +490,7 @@ export default function NewBoardPage() {
           <label className="block text-sm font-medium text-[rgba(255,255,255,0.7)] mb-3 uppercase tracking-wide">
             Tipo de Quadro
           </label>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button
               type="button"
               onClick={() => setBoardType('board')}
@@ -548,6 +561,31 @@ export default function NewBoardPage() {
                   </div>
                   <div className="text-xs text-[rgba(255,255,255,0.5)]">
                     Analytics & BI
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBoardType('dashboard')}
+              className={`p-6 rounded-lg border-2 transition-all ${
+                boardType === 'dashboard'
+                  ? 'border-[#C79D45] bg-[rgba(199,157,69,0.15)]'
+                  : 'border-[rgba(199,157,69,0.2)] bg-[rgba(26,42,29,0.7)] hover:border-[rgba(199,157,69,0.4)]'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <Sparkles 
+                  size={32} 
+                  className={boardType === 'dashboard' ? 'text-[#C79D45]' : 'text-[rgba(255,255,255,0.5)]'} 
+                />
+                <div className="text-center">
+                  <div className={`font-semibold mb-1 ${boardType === 'dashboard' ? 'text-[rgba(255,255,255,0.95)]' : 'text-[rgba(255,255,255,0.7)]'}`}>
+                    Dashboard
+                  </div>
+                  <div className="text-xs text-[rgba(255,255,255,0.5)]">
+                    Performance & Funil
                   </div>
                 </div>
               </div>
@@ -673,6 +711,38 @@ export default function NewBoardPage() {
             />
           </div>
 
+          {/* Campo de URL do Google Sheets (apenas para Dashboard) */}
+          {boardType === 'dashboard' && (
+            <div>
+              <label htmlFor="spreadsheetUrl" className="block text-sm font-medium text-[rgba(255,255,255,0.7)] mb-2 uppercase tracking-wide">
+                URL da Planilha do Google Sheets
+              </label>
+              <input
+                id="spreadsheetUrl"
+                type="text"
+                value={spreadsheetUrl}
+                onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                className="w-full px-4 py-3 border border-[rgba(199,157,69,0.2)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C79D45] focus:border-[#C79D45] transition-all input-white-text"
+                placeholder="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit"
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  color: 'rgba(255, 255, 255, 0.95)'
+                } as React.CSSProperties}
+                onFocus={(e) => {
+                  e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.3)'
+                  e.target.style.setProperty('color', 'rgba(255, 255, 255, 0.95)', 'important')
+                }}
+                onBlur={(e) => {
+                  e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'
+                  e.target.style.setProperty('color', 'rgba(255, 255, 255, 0.95)', 'important')
+                }}
+              />
+              <p className="text-xs text-[rgba(255,255,255,0.5)] mt-2">
+                ⚠️ A planilha precisa estar compartilhada com "Qualquer pessoa com o link" para funcionar
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
@@ -684,6 +754,8 @@ export default function NewBoardPage() {
                   ? 'Documento' 
                   : boardType === 'intelligence'
                   ? 'Quadro de Inteligência'
+                  : boardType === 'dashboard'
+                  ? 'Dashboard'
                   : 'Quadro'
               }`}
             </button>

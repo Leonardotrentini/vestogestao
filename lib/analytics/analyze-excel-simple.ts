@@ -277,3 +277,4 @@ export function analyzeExcelSimple(excelStructure: ExcelStructure, userDescripti
   }
 }
 
+

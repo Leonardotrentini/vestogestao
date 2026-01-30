@@ -150,3 +150,4 @@ export default function AIInsightsPanel({ workspaceId, userId, entityId }: AIIns
   )
 }
 
+

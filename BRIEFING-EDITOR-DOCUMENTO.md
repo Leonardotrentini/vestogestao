@@ -205,3 +205,4 @@ npm install react-quill quill
 **Status**: ⏳ Aguardando aprovação para iniciar implementação
 
 
+

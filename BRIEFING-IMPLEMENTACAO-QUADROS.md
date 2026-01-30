@@ -253,3 +253,4 @@ Motivo de Perda: (se perdido)
 
 
 
+

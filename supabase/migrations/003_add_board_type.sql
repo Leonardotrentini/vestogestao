@@ -13,3 +13,4 @@ UPDATE boards SET type = 'board' WHERE type IS NULL;
 
 
 
+

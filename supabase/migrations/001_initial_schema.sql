@@ -60,7 +60,7 @@ CREATE TABLE columns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('text', 'status', 'person', 'priority', 'date', 'number', 'checkbox', 'time_tracking')),
+  comtype TEXT NOT NULL CHECK (type IN ('text', 'status', 'person', 'priority', 'date', 'number', 'checkbox', 'time_tracking')),
   position INTEGER NOT NULL DEFAULT 0,
   settings JSONB DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -153,6 +153,7 @@ CREATE TRIGGER update_subitems_updated_at BEFORE UPDATE ON subitems FOR EACH ROW
 CREATE TRIGGER update_columns_updated_at BEFORE UPDATE ON columns FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_column_values_updated_at BEFORE UPDATE ON column_values FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 
 
 

@@ -6,3 +6,4 @@ ALTER TABLE boards ADD COLUMN IF NOT EXISTS content TEXT;
 
 
 
+

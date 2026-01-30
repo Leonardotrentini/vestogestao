@@ -229,3 +229,4 @@ export default function IntelligenceBoard({ workspaceId, userId }: IntelligenceB
   )
 }
 
+
