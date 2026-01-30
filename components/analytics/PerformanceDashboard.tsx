@@ -66,7 +66,7 @@ interface DashboardData {
 
 export default function PerformanceDashboard({ boardId, workspaceId, spreadsheetId }: PerformanceDashboardProps) {
   // Inicializar com dados vazios para evitar tela em branco
-  const [data, setData] = useState<DashboardData | null>({
+  const [data, setData] = useState<DashboardData>({
     kpis: {
       cpl: { real: 0, meta: 15 },
       cpql: { real: 0, meta: 45 },
@@ -154,7 +154,12 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
   useEffect(() => {
     if (!boardConfigLoaded) {
       console.log('⏳ Aguardando carregamento da configuração do board...')
-      return
+      // Timeout de segurança: se não carregar em 3 segundos, carregar mesmo assim
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ Timeout ao carregar board config, carregando dados mesmo assim...')
+        setBoardConfigLoaded(true)
+      }, 3000)
+      return () => clearTimeout(timeout)
     }
     
     console.log('🔄 Carregando dados após configurações do board...', { gastosTotal, currentSpreadsheetId, boardConfigLoaded })
@@ -343,33 +348,20 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
     loadData()
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C79D45]"></div>
-        <p className="ml-4 text-[rgba(255,255,255,0.7)]">Carregando dashboard...</p>
-      </div>
-    )
-  }
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-[rgba(255,255,255,0.7)] mb-4">Erro ao carregar dados do dashboard</p>
-          <button
-            onClick={() => loadData()}
-            className="px-4 py-2 bg-[#C79D45] text-[#0F1711] rounded-lg hover:bg-[#D4AD5F] transition-colors"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // Sempre renderizar o dashboard, mesmo em loading, para evitar tela em branco
+  // O loading será mostrado como overlay
 
   return (
-    <div className="min-h-screen bg-[#0F1711]" style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(199, 157, 69, 0.08) 0%, transparent 50%), radial-gradient(at 100% 100%, rgba(33, 47, 35, 0.2) 0%, transparent 50%)' }}>
+    <div className="min-h-screen bg-[#0F1711] relative" style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(199, 157, 69, 0.08) 0%, transparent 50%), radial-gradient(at 100% 100%, rgba(33, 47, 35, 0.2) 0%, transparent 50%)' }}>
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-[rgba(15,23,17,0.8)] backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C79D45]"></div>
+            <p className="text-[rgba(255,255,255,0.9)] font-medium">Carregando dashboard...</p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-[#1A2A1D] border-b border-[rgba(199,157,69,0.2)] px-6 py-4 flex items-center justify-between backdrop-blur-xl">
         <div>
@@ -425,7 +417,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
         boardId={boardId}
         spreadsheetId={currentSpreadsheetId}
         gastosTotal={gastosTotal}
-        currentMetas={data ? {
+        currentMetas={{
           financeiras: {
             cpl: data.kpis.cpl.meta,
             cpql: data.kpis.cpql.meta,
@@ -439,7 +431,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
             comparecimento: data.conversion[2]?.meta || 60,
             fechamento: data.conversion[3]?.meta || 25,
           }
-        } : undefined}
+        }}
         onSave={handleSaveMetas}
       />
 
