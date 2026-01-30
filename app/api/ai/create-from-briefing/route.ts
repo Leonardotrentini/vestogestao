@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     if (briefing.grouping.strategy === 'by_column' && briefing.grouping.byColumn) {
       // Agrupar por coluna específica
-      const groupColumnIndex = headers.findIndex(h => 
+      const groupColumnIndex = headers.findIndex((h: string) => 
         h.toLowerCase() === briefing.grouping.byColumn?.toLowerCase()
       )
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         // Determinar nome do item (primeira coluna que não é grupo)
         let itemName = ''
         if (briefing.grouping.strategy === 'by_column' && briefing.grouping.byColumn) {
-          const groupColIndex = headers.findIndex(h => 
+          const groupColIndex = headers.findIndex((h: string) => 
             h.toLowerCase() === briefing.grouping.byColumn?.toLowerCase()
           )
           // Nome do item é a próxima coluna após grupo
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
           // Processar valor baseado no tipo da coluna
           let processedValue: any = cellValue
 
-          const suggestedCol = briefing.suggestedColumns.find(sc => sc.name === headerName)
+          const suggestedCol = briefing.suggestedColumns.find((sc: { name: string; type: string; description: string }) => sc.name === headerName)
           if (suggestedCol?.type === 'number' || suggestedCol?.type === 'currency') {
             // Tentar converter para número
             const numValue = parseFloat(String(cellValue).replace(/[^\d.,]/g, '').replace(',', '.'))
@@ -213,4 +213,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
 

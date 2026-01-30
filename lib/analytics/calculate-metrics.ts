@@ -62,13 +62,16 @@ export async function calculateUserPerformance(
 
   let completedCount = 0
   let totalAssigned = assignedItems?.length || 0
+  let statusValues: Array<{ item_id: string; value: any }> | null = null
 
   if (statusColumns) {
-    const { data: statusValues } = await supabase
+    const { data: statusValuesData } = await supabase
       .from('column_values')
       .select('item_id, value')
       .in('item_id', itemIds)
       .eq('column_id', statusColumns.id)
+
+    statusValues = statusValuesData
 
     // Contar itens com status "Finalizado"
     completedCount = statusValues?.filter(
