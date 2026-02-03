@@ -11,6 +11,7 @@ import CurrencyCell from './CurrencyCell'
 import LinkCell from './LinkCell'
 import LongTextCell from './LongTextCell'
 import NumberCell from './NumberCell'
+import { formatPhoneNumber, isPhoneNumber } from '@/lib/phone-utils'
 
 interface ColumnCellProps {
   column: Column
@@ -43,17 +44,20 @@ export default function ColumnCell({ column, value, itemId, onChange, boardId, i
       return <NumberCell value={value} onChange={onChange} />
     case 'text':
       return (
-        <EditableTextCell value={value} onChange={onChange} />
+        <EditableTextCell value={value} onChange={onChange} column={column} />
       )
     default:
       return (
-        <EditableTextCell value={value} onChange={onChange} />
+        <EditableTextCell value={value} onChange={onChange} column={column} />
       )
   }
 }
 
 // Componente para texto editável inline
-function EditableTextCell({ value, onChange }: { value: any, onChange: (value: any) => void }) {
+function EditableTextCell({ value, onChange, column }: { value: any, onChange: (value: any) => void, column?: Column }) {
+  // Verificar se é uma coluna de WhatsApp ou se o valor parece ser um telefone
+  const isWhatsAppColumn = column?.name?.toLowerCase().includes('whatsapp') || column?.name?.toLowerCase().includes('wpp')
+  const shouldFormatPhone = isWhatsAppColumn || (value && isPhoneNumber(value))
   const [isEditing, setIsEditing] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -70,7 +74,13 @@ function EditableTextCell({ value, onChange }: { value: any, onChange: (value: a
 
   const handleBlur = () => {
     setIsEditing(false)
-    onChange(inputValue.trim() || null)
+    // Se for telefone, salvar sem formatação (apenas números)
+    if (shouldFormatPhone && inputValue) {
+      const cleaned = inputValue.replace(/\D/g, '')
+      onChange(cleaned || null)
+    } else {
+      onChange(inputValue.trim() || null)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -102,12 +112,15 @@ function EditableTextCell({ value, onChange }: { value: any, onChange: (value: a
     )
   }
 
+  // Formatar o valor se for telefone
+  const displayValue = shouldFormatPhone && value ? formatPhoneNumber(value) : (value || '-')
+
   return (
     <button
       onClick={() => setIsEditing(true)}
-      className="w-full text-left px-2 py-1 rounded text-sm text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]"
+      className="w-full text-left px-2 py-1.5 rounded-md text-sm text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.12)] hover:border hover:border-[rgba(199,157,69,0.3)] transition-all duration-150"
     >
-      {value || '-'}
+      {displayValue}
     </button>
   )
 }

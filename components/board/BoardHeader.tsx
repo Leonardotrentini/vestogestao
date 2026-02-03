@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, LayoutGrid, Table, Search, X, BarChart3 } from 'lucide-react'
+import { Plus, LayoutGrid, Table, Search, X, BarChart3, ArrowLeft } from 'lucide-react'
 import { Column } from '@/supabase/migrations/types'
 import ColumnsManager from './ColumnsManager'
 import SeedGestaoClientesButton from '@/components/workspace/SeedGestaoClientesButton'
@@ -20,9 +20,11 @@ interface BoardHeaderProps {
   isDocument?: boolean
   searchTerm?: string
   onSearchChange?: (value: string) => void
+  showBackToDashboard?: boolean
+  onBackToDashboard?: () => void
 }
 
-export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false, searchTerm = '', onSearchChange }: BoardHeaderProps) {
+export default function BoardHeader({ boardName, onCreateGroup, boardId, workspaceId, columns = [], onColumnsChange, viewMode = 'table', onViewModeChange, isDocument = false, searchTerm = '', onSearchChange, showBackToDashboard = false, onBackToDashboard }: BoardHeaderProps) {
   const [showGroupInput, setShowGroupInput] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
@@ -61,6 +63,16 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
     <div className="bg-[#1A2A1D] border-b border-[rgba(199,157,69,0.2)] sticky top-0 z-40 backdrop-blur-xl">
       <div className="px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          {showBackToDashboard && onBackToDashboard && (
+            <button
+              onClick={onBackToDashboard}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-[rgba(255,255,255,0.6)] hover:text-[rgba(255,255,255,0.9)] hover:bg-[rgba(199,157,69,0.1)] rounded transition-colors border border-transparent hover:border-[rgba(199,157,69,0.2)]"
+              title="Voltar para visualização de dashboard"
+            >
+              <ArrowLeft size={14} />
+              <span>Dashboard</span>
+            </button>
+          )}
           <h1 className="text-lg font-semibold text-[rgba(255,255,255,0.95)] font-main">{boardName || 'Quadro'}</h1>
           <span className="text-xs text-[rgba(255,255,255,0.5)]">Quadro principal</span>
         </div>

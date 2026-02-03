@@ -327,10 +327,10 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
       <div 
         ref={setNodeRef}
         style={style}
-        className={`flex min-w-max border-b border-[rgba(199,157,69,0.2)] hover:bg-[rgba(199,157,69,0.05)] transition-colors group/item-row ${isDragging ? 'opacity-50' : ''}`}
+        className={`flex min-w-max border-b border-[rgba(199,157,69,0.15)] hover:bg-[rgba(199,157,69,0.08)] hover:border-[rgba(199,157,69,0.3)] transition-all duration-200 group/item-row ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       >
         {/* Checkbox */}
-        <div className="w-8 flex-shrink-0 px-2 py-2 flex items-center border-r border-[rgba(199,157,69,0.2)]">
+        <div className="w-10 flex-shrink-0 px-3 py-3.5 flex items-center border-r border-[rgba(199,157,69,0.15)]">
           <input
             type="checkbox"
             className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded"
@@ -340,7 +340,7 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
 
         {/* Nome do Item - Área arrastável */}
         <div 
-          className="w-64 flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)] flex items-center"
+          className="w-72 flex-shrink-0 px-4 py-3.5 border-r border-[rgba(199,157,69,0.15)] flex items-center bg-[rgba(26,42,29,0.3)] group-hover/item-row:bg-[rgba(26,42,29,0.5)] transition-colors"
         >
           {isEditingName ? (
             <input
@@ -440,7 +440,7 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
           return (
             <div
               key={column.id}
-              className="flex-shrink-0 px-3 py-2 border-r border-[rgba(199,157,69,0.2)]"
+              className="flex-shrink-0 px-4 py-3.5 border-r border-[rgba(199,157,69,0.15)] hover:bg-[rgba(199,157,69,0.03)] transition-colors"
               style={{ width: `${width}px`, minWidth: '100px' }}
               onClick={(e) => e.stopPropagation()}
             >

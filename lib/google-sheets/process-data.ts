@@ -54,89 +54,152 @@ export function processDashboardData(
   console.log('Metas:', metasData.length, 'linhas')
 
   // Processar cabeçalhos e dados - LER TODAS AS COLUNAS
+  if (leadsData.length === 0) {
+    console.warn('⚠️ Nenhum dado encontrado na aba de Leads')
+    return {
+      kpis: {
+        cpl: { real: 0, meta: 15 },
+        cpql: { real: 0, meta: 45 },
+        cpa: { real: 0, meta: 120 },
+        cpc: { real: 0, meta: 250 },
+        cac: { real: 0, meta: 900 },
+      },
+      funnel: { leads: 0, qualificados: 0, agendamentos: 0, comparecimentos: 0, vendas: 0 },
+      conversion: [],
+      responsaveis: [],
+      campanhas: [],
+      anuncios: [],
+      publicos: [],
+    }
+  }
+
   const leadsHeaders = leadsData[0] || []
   console.log('📋 Cabeçalhos Leads encontrados:', leadsHeaders)
   console.log('📊 Total de colunas:', leadsHeaders.length)
   
+  // Limpar cabeçalhos (remover espaços, caracteres especiais)
+  const cleanHeaders = leadsHeaders.map((h: string) => String(h || '').trim())
+  console.log('🧹 Cabeçalhos limpos:', cleanHeaders)
+  
   // Processar todas as linhas de leads
   const leadsRows = leadsData.slice(1)
-    .map((row) => {
+    .map((row, rowIndex) => {
       const lead: Lead = {}
       
       // Mapear TODAS as colunas para o objeto lead
-      leadsHeaders.forEach((header: string, index: number) => {
+      cleanHeaders.forEach((header: string, index: number) => {
         if (header && header.trim()) {
-          lead[header] = row[index] || ''
+          // Pegar valor da célula, tratando casos de índices fora do range
+          const cellValue = row[index] !== undefined ? String(row[index] || '').trim() : ''
+          lead[header] = cellValue
         }
       })
       
       return lead
     })
-    .filter(lead => {
+    .filter((lead, rowIndex) => {
       // Filtrar apenas linhas que têm pelo menos algum dado
-      return Object.values(lead).some(val => val && String(val).trim())
+      const hasData = Object.values(lead).some(val => val && String(val).trim())
+      if (!hasData && rowIndex < 5) {
+        console.log(`⚠️ Linha ${rowIndex + 2} (após cabeçalho) está vazia:`, lead)
+      }
+      return hasData
     })
 
-  console.log('✅ Leads processados:', leadsRows.length)
+  console.log(`✅ Leads processados: ${leadsRows.length} de ${leadsData.length - 1} linhas totais`)
+  
+  if (leadsRows.length > 0) {
+    console.log('📝 Exemplo de lead processado:', leadsRows[0])
+  }
 
-  // Mapear índices das colunas importantes
-  const leadStatusIndex = findColumnIndex(leadsHeaders, ['lead_status', 'status', 'status_lead', 'situação', 'situacao', 'estado'])
-  const qualificadoIndex = findColumnIndex(leadsHeaders, ['validação', 'validacao', 'qualificado', 'qualificacao', 'qualificação', 'is_qualificado', 'validado'])
-  const adNameIndex = findColumnIndex(leadsHeaders, ['ad_name', 'campanha', 'nome_campanha', 'anuncio', 'anúncio', 'ad', 'campaign_name'])
-  const createdTimeIndex = findColumnIndex(leadsHeaders, ['created_time', 'data', 'data_criacao', 'criado_em', 'timestamp', 'data_cadastro'])
-  const responsavelIndex = findColumnIndex(leadsHeaders, ['responsavel', 'responsável', 'atendente', 'vendedor', 'owner', 'responsavel_nome'])
-  const etapaIndex = findColumnIndex(leadsHeaders, ['etapa', 'stage', 'fase'])
+  // Mapear índices das colunas importantes (usar cleanHeaders)
+  const leadStatusIndex = findColumnIndex(cleanHeaders, ['lead_status', 'status', 'status_lead', 'situação', 'situacao', 'estado'])
+  const qualificadoIndex = findColumnIndex(cleanHeaders, ['validação', 'validacao', 'qualificado', 'qualificacao', 'qualificação', 'is_qualificado', 'validado'])
+  const adNameIndex = findColumnIndex(cleanHeaders, ['ad_name', 'campanha', 'nome_campanha', 'anuncio', 'anúncio', 'ad', 'campaign_name'])
+  const createdTimeIndex = findColumnIndex(cleanHeaders, ['created_time', 'data', 'data_criacao', 'criado_em', 'timestamp', 'data_cadastro'])
+  const responsavelIndex = findColumnIndex(cleanHeaders, ['responsavel', 'responsável', 'atendente', 'vendedor', 'owner', 'responsavel_nome'])
+  const etapaIndex = findColumnIndex(cleanHeaders, ['etapa', 'stage', 'fase'])
 
   console.log('🔍 Índices de colunas importantes:', {
-    leadStatusIndex: leadStatusIndex !== -1 ? `${leadsHeaders[leadStatusIndex]} (${leadStatusIndex})` : 'não encontrado',
-    qualificadoIndex: qualificadoIndex !== -1 ? `${leadsHeaders[qualificadoIndex]} (${qualificadoIndex})` : 'não encontrado',
-    adNameIndex: adNameIndex !== -1 ? `${leadsHeaders[adNameIndex]} (${adNameIndex})` : 'não encontrado',
-    createdTimeIndex: createdTimeIndex !== -1 ? `${leadsHeaders[createdTimeIndex]} (${createdTimeIndex})` : 'não encontrado',
-    responsavelIndex: responsavelIndex !== -1 ? `${leadsHeaders[responsavelIndex]} (${responsavelIndex})` : 'não encontrado',
-    etapaIndex: etapaIndex !== -1 ? `${leadsHeaders[etapaIndex]} (${etapaIndex})` : 'não encontrado',
+    leadStatusIndex: leadStatusIndex !== -1 ? `${cleanHeaders[leadStatusIndex]} (${leadStatusIndex})` : 'não encontrado',
+    qualificadoIndex: qualificadoIndex !== -1 ? `${cleanHeaders[qualificadoIndex]} (${qualificadoIndex})` : 'não encontrado',
+    adNameIndex: adNameIndex !== -1 ? `${cleanHeaders[adNameIndex]} (${adNameIndex})` : 'não encontrado',
+    createdTimeIndex: createdTimeIndex !== -1 ? `${cleanHeaders[createdTimeIndex]} (${createdTimeIndex})` : 'não encontrado',
+    responsavelIndex: responsavelIndex !== -1 ? `${cleanHeaders[responsavelIndex]} (${responsavelIndex})` : 'não encontrado',
+    etapaIndex: etapaIndex !== -1 ? `${cleanHeaders[etapaIndex]} (${etapaIndex})` : 'não encontrado',
   })
 
   // Processar investimento - LER TODAS AS COLUNAS
-  const investimentoHeaders = investimentoData[0] || []
-  console.log('📋 Cabeçalhos Investimento encontrados:', investimentoHeaders)
+  let dataIndex = -1
+  let campanhaIndex = -1
+  let valorIndex = -1
   
-  const dataIndex = findColumnIndex(investimentoHeaders, ['data', 'date', 'data_investimento', 'data_gasto'])
-  const campanhaIndex = findColumnIndex(investimentoHeaders, ['campanha', 'ad_name', 'nome_campanha', 'anuncio', 'anúncio', 'campaign_name'])
-  const valorIndex = findColumnIndex(investimentoHeaders, ['valor_investido', 'investimento', 'valor', 'gasto', 'custo', 'spend'])
+  if (investimentoData.length === 0) {
+    console.warn('⚠️ Nenhum dado encontrado na aba de Investimento')
+  } else {
+    const investimentoHeaders = investimentoData[0] || []
+    console.log('📋 Cabeçalhos Investimento encontrados:', investimentoHeaders)
+    
+    // Limpar cabeçalhos
+    const cleanInvestimentoHeaders = investimentoHeaders.map((h: string) => String(h || '').trim())
+    console.log('🧹 Cabeçalhos Investimento limpos:', cleanInvestimentoHeaders)
+    
+    dataIndex = findColumnIndex(cleanInvestimentoHeaders, ['data', 'date', 'data_investimento', 'data_gasto'])
+    campanhaIndex = findColumnIndex(cleanInvestimentoHeaders, ['campanha', 'ad_name', 'nome_campanha', 'anuncio', 'anúncio', 'campaign_name'])
+    valorIndex = findColumnIndex(cleanInvestimentoHeaders, ['valor_investido', 'investimento', 'valor', 'gasto', 'custo', 'spend'])
 
-  console.log('🔍 Índices Investimento:', {
-    dataIndex: dataIndex !== -1 ? investimentoHeaders[dataIndex] : 'não encontrado',
-    campanhaIndex: campanhaIndex !== -1 ? investimentoHeaders[campanhaIndex] : 'não encontrado',
-    valorIndex: valorIndex !== -1 ? investimentoHeaders[valorIndex] : 'não encontrado',
-  })
-
-  const investimentoRows = investimentoData.slice(1)
-    .map((row) => {
-      const inv: Investimento = {}
-      
-      // Mapear TODAS as colunas
-      investimentoHeaders.forEach((header: string, index: number) => {
-        if (header && header.trim()) {
-          inv[header] = row[index] || ''
-        }
-      })
-      
-      // Normalizar valores importantes
-      if (dataIndex !== -1) inv.Data = String(row[dataIndex] || '').trim()
-      if (campanhaIndex !== -1) inv.Campanha = String(row[campanhaIndex] || '').trim()
-      if (valorIndex !== -1) {
-        const valorStr = String(row[valorIndex] || '0')
-        inv.Valor_Investido = parseFloat(valorStr.replace(/[^\d.,]/g, '').replace(',', '.')) || 0
-      }
-      
-      return inv
+    console.log('🔍 Índices Investimento:', {
+      dataIndex: dataIndex !== -1 ? `${cleanInvestimentoHeaders[dataIndex]} (${dataIndex})` : 'não encontrado',
+      campanhaIndex: campanhaIndex !== -1 ? `${cleanInvestimentoHeaders[campanhaIndex]} (${campanhaIndex})` : 'não encontrado',
+      valorIndex: valorIndex !== -1 ? `${cleanInvestimentoHeaders[valorIndex]} (${valorIndex})` : 'não encontrado',
     })
-    .filter(inv => {
-      // Manter apenas investimentos com valor > 0 ou com dados
-      return (inv.Valor_Investido || 0) > 0 || Object.values(inv).some(val => val && String(val).trim())
-    })
+  }
 
-  console.log('✅ Investimentos processados:', investimentoRows.length)
+  const investimentoRows = investimentoData.length > 0
+    ? investimentoData.slice(1)
+        .map((row, rowIndex) => {
+          const inv: Investimento = {}
+          
+          // Mapear TODAS as colunas
+          const cleanInvestimentoHeaders = investimentoData[0].map((h: string) => String(h || '').trim())
+          cleanInvestimentoHeaders.forEach((header: string, index: number) => {
+            if (header && header.trim()) {
+              const cellValue = row[index] !== undefined ? String(row[index] || '').trim() : ''
+              inv[header] = cellValue
+            }
+          })
+          
+          // Normalizar valores importantes
+          if (dataIndex !== -1 && row[dataIndex] !== undefined) {
+            inv.Data = String(row[dataIndex] || '').trim()
+          }
+          if (campanhaIndex !== -1 && row[campanhaIndex] !== undefined) {
+            inv.Campanha = String(row[campanhaIndex] || '').trim()
+          }
+          if (valorIndex !== -1 && row[valorIndex] !== undefined) {
+            const valorStr = String(row[valorIndex] || '0')
+            // Remover formatação de moeda e converter
+            const cleaned = valorStr.replace(/R\$\s*/gi, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')
+            inv.Valor_Investido = parseFloat(cleaned) || 0
+          }
+          
+          return inv
+        })
+        .filter((inv, rowIndex) => {
+          // Manter apenas investimentos com valor > 0 ou com dados
+          const hasData = (inv.Valor_Investido || 0) > 0 || Object.values(inv).some(val => val && String(val).trim())
+          if (!hasData && rowIndex < 3) {
+            console.log(`⚠️ Linha ${rowIndex + 2} de investimento está vazia ou inválida:`, inv)
+          }
+          return hasData
+        })
+    : []
+
+  console.log(`✅ Investimentos processados: ${investimentoRows.length} de ${investimentoData.length > 0 ? investimentoData.length - 1 : 0} linhas totais`)
+  
+  if (investimentoRows.length > 0) {
+    console.log('📝 Exemplo de investimento processado:', investimentoRows[0])
+  }
 
   // Processar metas
   const metasMap: Record<string, number> = {}
@@ -198,7 +261,7 @@ export function processDashboardData(
       // Buscar data na coluna created_time
       let dateValue = ''
       if (createdTimeIndex !== -1) {
-        dateValue = String(lead[leadsHeaders[createdTimeIndex]] || '')
+        dateValue = String(lead[cleanHeaders[createdTimeIndex]] || '')
       }
       
       if (!dateValue) return true // Se não tem data, incluir
@@ -236,7 +299,7 @@ export function processDashboardData(
     const before = filteredLeads.length
     filteredLeads = filteredLeads.filter((lead) => {
       const campanha = adNameIndex !== -1 
-        ? String(lead[leadsHeaders[adNameIndex]] || '')
+        ? String(lead[cleanHeaders[adNameIndex]] || '')
         : ''
       return campanha.toLowerCase().includes(campaignFilter.toLowerCase())
     })
@@ -248,7 +311,7 @@ export function processDashboardData(
     const before = filteredLeads.length
     filteredLeads = filteredLeads.filter((lead) => {
       const resp = responsavelIndex !== -1
-        ? String(lead[leadsHeaders[responsavelIndex]] || '')
+        ? String(lead[cleanHeaders[responsavelIndex]] || '')
         : ''
       return resp.toLowerCase() === responsibleFilter.toLowerCase()
     })
@@ -261,7 +324,7 @@ export function processDashboardData(
   // Qualificados: verificar coluna "validação" com valor "QUALIFICADO"
   const qualificados = filteredLeads.filter((l) => {
     if (qualificadoIndex !== -1) {
-      const qual = String(l[leadsHeaders[qualificadoIndex]] || '').toUpperCase().trim()
+      const qual = String(l[cleanHeaders[qualificadoIndex]] || '').toUpperCase().trim()
       return qual === 'QUALIFICADO' || 
              qual === 'QUALIFICADA' ||
              qual === 'SIM' || 
@@ -278,11 +341,11 @@ export function processDashboardData(
   const agendamentos = filteredLeads.filter((l) => {
     let status = ''
     if (leadStatusIndex !== -1) {
-      status = String(l[leadsHeaders[leadStatusIndex]] || '').toLowerCase().trim()
+      status = String(l[cleanHeaders[leadStatusIndex]] || '').toLowerCase().trim()
     }
     
     if (etapaIndex !== -1 && !status.includes('agend')) {
-      const etapa = String(l[leadsHeaders[etapaIndex]] || '').toLowerCase().trim()
+      const etapa = String(l[cleanHeaders[etapaIndex]] || '').toLowerCase().trim()
       status += ' ' + etapa
     }
     
@@ -296,11 +359,11 @@ export function processDashboardData(
   const comparecimentos = filteredLeads.filter((l) => {
     let status = ''
     if (leadStatusIndex !== -1) {
-      status = String(l[leadsHeaders[leadStatusIndex]] || '').toLowerCase().trim()
+      status = String(l[cleanHeaders[leadStatusIndex]] || '').toLowerCase().trim()
     }
     
     if (etapaIndex !== -1) {
-      const etapa = String(l[leadsHeaders[etapaIndex]] || '').toLowerCase().trim()
+      const etapa = String(l[cleanHeaders[etapaIndex]] || '').toLowerCase().trim()
       status += ' ' + etapa
     }
     
@@ -313,11 +376,11 @@ export function processDashboardData(
   const vendas = filteredLeads.filter((l) => {
     let status = ''
     if (leadStatusIndex !== -1) {
-      status = String(l[leadsHeaders[leadStatusIndex]] || '').toLowerCase().trim()
+      status = String(l[cleanHeaders[leadStatusIndex]] || '').toLowerCase().trim()
     }
     
     if (etapaIndex !== -1) {
-      const etapa = String(l[leadsHeaders[etapaIndex]] || '').toLowerCase().trim()
+      const etapa = String(l[cleanHeaders[etapaIndex]] || '').toLowerCase().trim()
       status += ' ' + etapa
     }
     
@@ -446,7 +509,7 @@ export function processDashboardData(
   const responsaveisMap = new Map<string, { leads: number; vendas: number }>()
   filteredLeads.forEach((lead) => {
     const resp = responsavelIndex !== -1
-      ? String(lead[leadsHeaders[responsavelIndex]] || 'Sem responsável')
+      ? String(lead[cleanHeaders[responsavelIndex]] || 'Sem responsável')
       : 'Sem responsável'
     if (!responsaveisMap.has(resp)) {
       responsaveisMap.set(resp, { leads: 0, vendas: 0 })
@@ -456,10 +519,10 @@ export function processDashboardData(
     
     let status = ''
     if (leadStatusIndex !== -1) {
-      status = String(lead[leadsHeaders[leadStatusIndex]] || '').toLowerCase()
+      status = String(lead[cleanHeaders[leadStatusIndex]] || '').toLowerCase()
     }
     if (etapaIndex !== -1) {
-      const etapa = String(lead[leadsHeaders[etapaIndex]] || '').toLowerCase()
+      const etapa = String(lead[cleanHeaders[etapaIndex]] || '').toLowerCase()
       status += ' ' + etapa
     }
     
@@ -489,7 +552,7 @@ export function processDashboardData(
 
   filteredLeads.forEach((lead) => {
     const campanha = adNameIndex !== -1
-      ? String(lead[leadsHeaders[adNameIndex]] || 'Sem campanha')
+      ? String(lead[cleanHeaders[adNameIndex]] || 'Sem campanha')
       : 'Sem campanha'
     if (!campanhasMap.has(campanha)) {
       campanhasMap.set(campanha, { investimento: 0, leads: 0 })
@@ -506,17 +569,17 @@ export function processDashboardData(
   }))
 
   // Agrupar por ANÚNCIO (ad_name) - apenas leads qualificados
-  const adsetNameIndex = findColumnIndex(leadsHeaders, ['adset_name', 'adset', 'publico', 'público', 'audience'])
+  const adsetNameIndex = findColumnIndex(cleanHeaders, ['adset_name', 'adset', 'publico', 'público', 'audience'])
   const anunciosMap = new Map<string, { investimento: number; leadsQualificados: number }>()
   
   // Primeiro, contar leads qualificados por anúncio
   filteredLeads.forEach((lead) => {
     const isQualificado = qualificadoIndex !== -1
-      ? String(lead[leadsHeaders[qualificadoIndex]] || '').toUpperCase().trim() === 'QUALIFICADO'
+      ? String(lead[cleanHeaders[qualificadoIndex]] || '').toUpperCase().trim() === 'QUALIFICADO'
       : false
     
     if (isQualificado && adNameIndex !== -1) {
-      const anuncio = String(lead[leadsHeaders[adNameIndex]] || 'Sem anúncio')
+      const anuncio = String(lead[cleanHeaders[adNameIndex]] || 'Sem anúncio')
       if (!anunciosMap.has(anuncio)) {
         anunciosMap.set(anuncio, { investimento: 0, leadsQualificados: 0 })
       }
@@ -543,14 +606,14 @@ export function processDashboardData(
     if (data.investimento === 0) {
       const lead = filteredLeads.find(l => {
         if (adNameIndex !== -1) {
-          return String(l[leadsHeaders[adNameIndex]] || '').toLowerCase() === anuncio.toLowerCase()
+          return String(l[cleanHeaders[adNameIndex]] || '').toLowerCase() === anuncio.toLowerCase()
         }
         return false
       })
       
       if (lead && adNameIndex !== -1) {
         // Tentar buscar investimento pela campanha do lead
-        const leadCampanha = String(lead[leadsHeaders[adNameIndex]] || '')
+        const leadCampanha = String(lead[cleanHeaders[adNameIndex]] || '')
         const inv = investimentoRows.find(inv => {
           const campanha = String(inv.Campanha || '').toLowerCase()
           return campanha.includes(leadCampanha.toLowerCase()) || 
@@ -581,11 +644,11 @@ export function processDashboardData(
     // Primeiro, contar leads qualificados por público
     filteredLeads.forEach((lead) => {
       const isQualificado = qualificadoIndex !== -1
-        ? String(lead[leadsHeaders[qualificadoIndex]] || '').toUpperCase().trim() === 'QUALIFICADO'
+        ? String(lead[cleanHeaders[qualificadoIndex]] || '').toUpperCase().trim() === 'QUALIFICADO'
         : false
       
       if (isQualificado) {
-        const publico = String(lead[leadsHeaders[adsetNameIndex]] || 'Sem público')
+        const publico = String(lead[cleanHeaders[adsetNameIndex]] || 'Sem público')
         if (!publicosMap.has(publico)) {
           publicosMap.set(publico, { investimento: 0, leadsQualificados: 0 })
         }
@@ -611,7 +674,7 @@ export function processDashboardData(
       if (data.investimento === 0) {
         const lead = filteredLeads.find(l => {
           if (adsetNameIndex !== -1) {
-            return String(l[leadsHeaders[adsetNameIndex]] || '').toLowerCase() === publico.toLowerCase()
+            return String(l[cleanHeaders[adsetNameIndex]] || '').toLowerCase() === publico.toLowerCase()
           }
           return false
         })
@@ -619,7 +682,7 @@ export function processDashboardData(
         if (lead) {
           // Tentar buscar investimento pela campanha do lead
           const leadCampanha = adNameIndex !== -1 
-            ? String(lead[leadsHeaders[adNameIndex]] || '')
+            ? String(lead[cleanHeaders[adNameIndex]] || '')
             : ''
           const inv = investimentoRows.find(inv => {
             const campanha = String(inv.Campanha || '').toLowerCase()
@@ -695,5 +758,7 @@ export function processDashboardData(
     campanhas,
     anuncios,
     publicos,
+    leads: filteredLeads, // Adicionar leads processados para o CRM
+    leadsHeaders: cleanHeaders, // Adicionar cabeçalhos para referência
   }
 }

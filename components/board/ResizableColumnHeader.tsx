@@ -130,7 +130,7 @@ export default function ResizableColumnHeader({
     <>
       <div
         ref={columnRef}
-        className="relative flex-shrink-0 bg-[#1A2A1D] border-r border-[rgba(199,157,69,0.2)]"
+        className="relative flex-shrink-0 bg-[#1A2A1D] border-r border-[rgba(199,157,69,0.2)] group/column"
         style={{ width: `${width}px`, minWidth: '100px' }}
       >
         <div className="px-3 py-2">
@@ -186,28 +186,39 @@ export default function ResizableColumnHeader({
           )}
         </div>
         
-        {/* Handle de redimensionamento */}
+        {/* Handle de redimensionamento - área maior para facilitar o clique */}
         <div
           ref={resizeHandleRef}
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors group z-10 ${
-            isResizing ? 'bg-blue-500' : 'hover:bg-blue-500'
+          className={`absolute top-0 right-0 w-3 h-full cursor-col-resize transition-all z-20 ${
+            isResizing 
+              ? 'bg-[#C79D45] opacity-100' 
+              : 'opacity-0 group-hover/column:opacity-100 bg-[rgba(199,157,69,0.3)] hover:bg-[rgba(199,157,69,0.6)]'
           }`}
           onMouseDown={handleMouseDown}
-          title="Redimensionar coluna"
+          title="Arraste para redimensionar a coluna"
+          style={{
+            marginRight: '-1px' // Estender um pouco para fora para facilitar o clique
+          }}
         >
           {isResizing && (
             <>
-              {/* Linha azul vertical indicando o resize */}
+              {/* Linha dourada vertical indicando o resize */}
               <div
-                className="fixed top-0 bottom-0 w-0.5 bg-blue-500 z-[9998] pointer-events-none"
+                className="fixed top-0 bottom-0 w-0.5 bg-[#C79D45] z-[9998] pointer-events-none shadow-lg"
                 style={{
                   left: `${tooltipPosition.x}px`,
-                  transform: 'translateX(-50%)'
+                  transform: 'translateX(-50%)',
+                  boxShadow: '0 0 8px rgba(199, 157, 69, 0.6)'
                 }}
               />
             </>
           )}
         </div>
+        
+        {/* Indicador visual sutil na borda direita quando não está redimensionando */}
+        {!isResizing && (
+          <div className="absolute top-0 right-0 w-px h-full bg-[rgba(199,157,69,0.2)] group-hover/column:bg-[rgba(199,157,69,0.4)] transition-colors pointer-events-none z-10" />
+        )}
 
         {/* Tooltip durante o resize */}
         {isResizing && (
