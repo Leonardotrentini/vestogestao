@@ -691,7 +691,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
       </div>
 
       {/* Abas - Sempre visíveis */}
-      <div className="bg-[rgba(26,42,29,0.7)] border-b border-[rgba(199,157,69,0.2)] px-6 py-2 flex items-center gap-2 backdrop-blur-xl">
+      <div className="bg-[rgba(26,42,29,0.7)] border-b border-[rgba(199,157,69,0.2)] px-6 py-2 flex items-center gap-2 backdrop-blur-xl z-10 relative">
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium ${
