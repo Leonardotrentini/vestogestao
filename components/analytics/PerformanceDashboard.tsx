@@ -556,7 +556,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
   // O loading será mostrado como overlay
 
   return (
-    <div className="min-h-screen bg-[#0F1711] relative" style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(199, 157, 69, 0.08) 0%, transparent 50%), radial-gradient(at 100% 100%, rgba(33, 47, 35, 0.2) 0%, transparent 50%)' }}>
+    <div className="min-h-screen bg-[#0F1711] relative flex flex-col" style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(199, 157, 69, 0.08) 0%, transparent 50%), radial-gradient(at 100% 100%, rgba(33, 47, 35, 0.2) 0%, transparent 50%)' }}>
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 bg-[rgba(15,23,17,0.8)] backdrop-blur-sm z-50 flex items-center justify-center">
@@ -690,7 +690,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
         </select>
       </div>
 
-      {/* Abas */}
+      {/* Abas - Sempre visíveis */}
       <div className="bg-[rgba(26,42,29,0.7)] border-b border-[rgba(199,157,69,0.2)] px-6 py-2 flex items-center gap-2 backdrop-blur-xl">
         <button
           onClick={() => setActiveTab('dashboard')}
