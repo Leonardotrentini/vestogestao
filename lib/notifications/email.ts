@@ -60,6 +60,25 @@ export function formatNewLeadEmail(lead: Record<string, any>): { subject: string
     : 'Não informado'
   const campaign = lead['campaign_name'] || lead['Campaign Name'] || lead['campanha'] || 'Não informado'
   const ad = lead['ad_name'] || lead['Ad Name'] || 'Não informado'
+  
+  // Buscar faturamento mensal com várias variações
+  const faturamento = lead['quanto_você_vende_em_média_mensalmente'] ||
+                      lead['Quanto você vende em média mensalmente'] ||
+                      lead['quanto voce vende em media mensalmente'] ||
+                      lead['Quanto voce vende em media mensalmente'] ||
+                      lead['faturamento_mensal'] ||
+                      lead['Faturamento Mensal'] ||
+                      lead['faturamento'] ||
+                      lead['Faturamento'] ||
+                      lead['faturamento_médio'] ||
+                      lead['Faturamento Médio'] ||
+                      (() => {
+                        const faturamentoKey = Object.keys(lead).find(key => {
+                          const lowerKey = key.toLowerCase()
+                          return lowerKey.includes('faturamento') || lowerKey.includes('vende') || lowerKey.includes('mensal')
+                        })
+                        return faturamentoKey ? lead[faturamentoKey] : 'Não informado'
+                      })() || 'Não informado'
 
   const subject = `🆕 Novo Lead: ${fullName}`
 
@@ -93,6 +112,7 @@ export function formatNewLeadEmail(lead: Record<string, any>): { subject: string
             <p><span class="label">Instagram:</span><span class="value">${instagram}</span></p>
             <p><span class="label">Campanha:</span><span class="value">${campaign}</span></p>
             <p><span class="label">Anúncio:</span><span class="value">${ad}</span></p>
+            <p><span class="label">Faturamento Mensal:</span><span class="value">${faturamento}</span></p>
           </div>
 
           <p style="margin-top: 20px; color: #666; font-size: 14px;">
