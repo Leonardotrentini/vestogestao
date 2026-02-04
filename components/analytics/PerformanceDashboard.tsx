@@ -123,7 +123,7 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
           .eq('board_id', boardId)
           .limit(1)
         
-        setHasSyncedData(groups && groups.length > 0)
+        setHasSyncedData(!!(groups && groups.length > 0))
       } catch (error) {
         console.error('Erro ao verificar dados sincronizados:', error)
       }
@@ -1015,9 +1015,12 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
                                    lead['instagram'] || 
                                    lead['Instagram'] || 
                                    lead['@instagram'] || 
-                                   lead['@_instagram'] ||
-                                   // Tentar buscar qualquer campo que contenha "instagram"
-                                   Object.keys(lead).find(key => key.toLowerCase().includes('instagram')) ? lead[Object.keys(lead).find(key => key.toLowerCase().includes('instagram'))!] : '' || ''
+                                  lead['@_instagram'] ||
+                                  // Tentar buscar qualquer campo que contenha "instagram"
+                                  (() => {
+                                    const instagramKey = Object.keys(lead).find(key => key.toLowerCase().includes('instagram'))
+                                    return instagramKey ? lead[instagramKey] : ''
+                                  })()
                   
                   // Buscar telefone com várias variações
                   const phoneNumber = lead['phone_number'] || 
@@ -1044,13 +1047,13 @@ export default function PerformanceDashboard({ boardId, workspaceId, spreadsheet
                                             lead['faturamento_médio'] || 
                                             lead['Faturamento Médio'] ||
                                             // Tentar buscar qualquer campo que contenha "faturamento" ou "vende"
-                                            Object.keys(lead).find(key => {
-                                              const lowerKey = key.toLowerCase()
-                                              return lowerKey.includes('faturamento') || lowerKey.includes('vende') || lowerKey.includes('mensal')
-                                            }) ? lead[Object.keys(lead).find(key => {
-                                              const lowerKey = key.toLowerCase()
-                                              return lowerKey.includes('faturamento') || lowerKey.includes('vende') || lowerKey.includes('mensal')
-                                            })!] : '' || ''
+                                            (() => {
+                                              const faturamentoKey = Object.keys(lead).find(key => {
+                                                const lowerKey = key.toLowerCase()
+                                                return lowerKey.includes('faturamento') || lowerKey.includes('vende') || lowerKey.includes('mensal')
+                                              })
+                                              return faturamentoKey ? lead[faturamentoKey] : ''
+                                            })()
                   const qualificado = lead['qualificado'] || lead['Qualificado'] || lead['validação'] || lead['Validação'] || ''
                   const status = lead['lead_status'] || lead['Status'] || lead['status'] || lead['situação'] || lead['situacao'] || 'Novo'
 

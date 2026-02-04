@@ -14,7 +14,7 @@ interface BoardTableProps {
   onToggleGroup: (groupId: string, isCollapsed: boolean) => void
   onCreateItem: (groupId: string, name: string) => void
   onMoveItem?: (itemId: string, targetGroupId: string) => void
-  onMoveGroup?: (groupId: string, newPosition: number) => void
+  onMoveGroup?: (activeId: string, overId: string) => void
   boardId: string
 }
 
@@ -49,7 +49,7 @@ export default function BoardTable({
 
     if (activeGroup && overGroup && activeGroup.id !== overGroup.id && onMoveGroup) {
       // Reordenar grupos
-      onMoveGroup(activeGroup.id, overGroup.id)
+      onMoveGroup(activeGroup.id as string, overGroup.id as string)
       return
     }
 

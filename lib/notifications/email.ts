@@ -12,20 +12,15 @@ interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    const { RESEND_API_KEY, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } = process.env
+    const { RESEND_API_KEY, EMAIL_FROM } = process.env
 
-    // Se tiver Resend API Key, usar Resend (recomendado)
-    if (RESEND_API_KEY) {
-      return await sendEmailViaResend(options)
+    // Usar Resend (único serviço suportado)
+    if (!RESEND_API_KEY) {
+      console.warn('⚠️ RESEND_API_KEY não configurada. Configure no .env.local ou na Vercel.')
+      return false
     }
     
-    // Se tiver SMTP configurado, usar SMTP direto
-    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-      return await sendEmailViaSMTP(options)
-    }
-
-    console.warn('⚠️ Nenhum serviço de email configurado. Configure RESEND_API_KEY ou SMTP.')
-    return false
+    return await sendEmailViaResend(options)
   } catch (error) {
     console.error('❌ Erro ao enviar email:', error)
     return false
@@ -56,38 +51,6 @@ async function sendEmailViaResend(options: EmailOptions): Promise<boolean> {
   }
 }
 
-async function sendEmailViaSMTP(options: EmailOptions): Promise<boolean> {
-  try {
-    const nodemailer = await import('nodemailer')
-    
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_PORT === '465', // true para 465, false para outras portas
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    })
-
-    const recipients = Array.isArray(options.to) ? options.to : [options.to]
-    
-    for (const recipient of recipients) {
-      await transporter.sendMail({
-        from: options.from || process.env.EMAIL_FROM || 'noreply@vestogestao.com',
-        to: recipient,
-        subject: options.subject,
-        html: options.html,
-      })
-    }
-
-    console.log(`✅ Email enviado via SMTP para: ${recipients.join(', ')}`)
-    return true
-  } catch (error) {
-    console.error('❌ Erro ao enviar email via SMTP:', error)
-    return false
-  }
-}
 
 export function formatNewLeadEmail(lead: Record<string, any>): { subject: string; html: string } {
   const fullName = lead['full_name'] || lead['Full Name'] || lead['nome'] || 'Lead sem nome'

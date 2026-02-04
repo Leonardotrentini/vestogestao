@@ -3,10 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchDashboardData } from '@/lib/google-sheets/client'
 import { getDefaultUserId } from '@/lib/utils'
 import { sendEmail, formatNewLeadEmail } from '@/lib/notifications/email'
-import { sendWhatsAppMessage, formatNewLeadWhatsAppMessage } from '@/lib/notifications/whatsapp'
 
 /**
- * Envia notificações (email e WhatsApp) para novos leads
+ * Envia notificações por email para novos leads
  */
 async function sendNotificationsForNewLeads(leads: Record<string, any>[]) {
   const notifications = []
@@ -31,40 +30,6 @@ async function sendNotificationsForNewLeads(leads: Record<string, any>[]) {
       }
     }
 
-    // Enviar WhatsApp se configurado
-    const whatsappGroupId = process.env.WHATSAPP_GROUP_ID
-    if (whatsappGroupId) {
-      // Se houver múltiplos leads, enviar mensagem consolidada
-      if (leads.length === 1) {
-        const message = formatNewLeadWhatsAppMessage(leads[0])
-        const whatsappSent = await sendWhatsAppMessage({
-          to: '',
-          message,
-          groupId: whatsappGroupId
-        })
-        if (whatsappSent) {
-          notifications.push({ type: 'whatsapp', lead: leads[0]['full_name'] || leads[0]['nome'] || 'Lead', success: true })
-        }
-      } else {
-        // Mensagem consolidada para múltiplos leads
-        const consolidatedMessage = `🆕 *${leads.length} NOVOS LEADS RECEBIDOS!*\n\n` +
-          leads.map((lead, idx) => {
-            const name = lead['full_name'] || lead['Full Name'] || lead['nome'] || `Lead ${idx + 1}`
-            const phone = lead['phone_number'] || lead['Phone Number'] || lead['telefone'] || 'Não informado'
-            return `${idx + 1}. *${name}* - 📱 ${phone}`
-          }).join('\n') +
-          `\n\nTodos foram adicionados ao grupo "Novos" no CRM.`
-        
-        const whatsappSent = await sendWhatsAppMessage({
-          to: '',
-          message: consolidatedMessage,
-          groupId: whatsappGroupId
-        })
-        if (whatsappSent) {
-          notifications.push({ type: 'whatsapp', lead: `${leads.length} leads`, success: true })
-        }
-      }
-    }
   } catch (error) {
     console.error(`❌ Erro ao enviar notificações:`, error)
   }
