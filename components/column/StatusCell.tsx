@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, Edit2, Plus } from 'lucide-react'
 import { Column } from '@/supabase/migrations/types'
 import StatusLabelManager from './StatusLabelManager'
@@ -52,10 +53,17 @@ export default function StatusCell({ value, onChange, column, boardId, onColumns
   const [newLabelName, setNewLabelName] = useState('')
   const [newLabelColor, setNewLabelColor] = useState(COLOR_OPTIONS[0].value)
   const [statusOptions, setStatusOptions] = useState<Array<{ value: string; label: string; color: string }>>(DEFAULT_STATUS_OPTIONS)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const editInputRef = useRef<HTMLInputElement>(null)
   const newLabelInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Função helper para obter opções padrão
   const getDefaultOptions = (col?: Column): Array<{ value: string; label: string; color: string }> => {
@@ -106,11 +114,25 @@ export default function StatusCell({ value, onChange, column, boardId, onColumns
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
         setIsOpen(false)
       }
     }
     if (isOpen) {
+      // Calcular posição do dropdown quando abrir (fixed positioning usa viewport coordinates)
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect()
+        setDropdownPosition({
+          top: rect.bottom + 8,
+          left: rect.left
+        })
+      }
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
@@ -261,6 +283,7 @@ export default function StatusCell({ value, onChange, column, boardId, onColumns
         </div>
       ) : (
         <button
+          ref={buttonRef}
           type="button"
           onClick={(e) => {
             e.preventDefault()
@@ -285,20 +308,34 @@ export default function StatusCell({ value, onChange, column, boardId, onColumns
         </button>
       )}
       
-      {isOpen && (
+      {isOpen && mounted && typeof window !== 'undefined' && typeof document !== 'undefined' && document.body ? createPortal(
         <>
           <div 
-            className="fixed inset-0 z-[90]" 
+            className="fixed inset-0" 
             onClick={() => setIsOpen(false)}
+            style={{ 
+              pointerEvents: 'auto',
+              zIndex: 99998
+            }}
           />
-          <div className="absolute z-[100] mt-2 bg-white border border-gray-300 rounded-lg shadow-xl min-w-[280px] w-max max-w-[400px]">
+          <div 
+            ref={dropdownRef}
+            className="fixed bg-white border border-gray-300 rounded-lg shadow-2xl min-w-[280px] w-max max-w-[400px]"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 99999,
+              position: 'fixed',
+              isolation: 'isolate'
+            }}
+          >
             {/* Arrow pointing up */}
             <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-gray-300 transform rotate-45" />
             
             {/* Content */}
             <div className="relative bg-white rounded-lg overflow-hidden">
               {/* Status Options */}
-              <div className="py-2 max-h-[400px] overflow-y-auto">
+              <div className="py-2 max-h-[600px] overflow-y-auto">
                 {statusOptions.map((status) => (
                   <button
                     key={status.value}
@@ -413,8 +450,9 @@ export default function StatusCell({ value, onChange, column, boardId, onColumns
               )}
             </div>
           </div>
-        </>
-      )}
+        </>,
+        document.body
+      ) : null}
 
       {column && (
         <StatusLabelManager

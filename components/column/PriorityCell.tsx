@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
 
 const PRIORITY_OPTIONS = [
@@ -17,23 +18,47 @@ interface PriorityCellProps {
 
 export default function PriorityCell({ value, onChange }: PriorityCellProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
         setIsOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    if (isOpen) {
+      // Calcular posição do dropdown quando abrir (fixed positioning usa viewport coordinates)
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect()
+        setDropdownPosition({
+          top: rect.bottom + 8,
+          left: rect.left
+        })
+      }
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const selectedPriority = PRIORITY_OPTIONS.find(p => p.value === value) || PRIORITY_OPTIONS[3]
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full text-left px-2 py-1 rounded text-sm font-medium ${selectedPriority.color} flex items-center justify-between`}
       >
@@ -41,30 +66,55 @@ export default function PriorityCell({ value, onChange }: PriorityCellProps) {
         <ChevronDown size={14} />
       </button>
       
-      {isOpen && (
+      {isOpen && mounted && typeof window !== 'undefined' && typeof document !== 'undefined' && document.body ? createPortal(
         <>
           <div 
-            className="fixed inset-0 z-[90]" 
+            className="fixed inset-0" 
             onClick={() => setIsOpen(false)}
+            style={{ 
+              pointerEvents: 'auto',
+              zIndex: 99998
+            }}
           />
-          <div className="absolute z-[100] mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-w-[150px]">
-            {PRIORITY_OPTIONS.map((priority) => (
-              <button
-                key={priority.value}
-                onClick={() => {
-                  onChange(priority.value)
-                  setIsOpen(false)
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
-              >
-                <span className={`inline-block px-2 py-1 rounded text-xs ${priority.color}`}>
-                  {priority.label}
-                </span>
-              </button>
-            ))}
+          <div 
+            ref={dropdownRef}
+            className="fixed bg-white border border-gray-300 rounded-lg shadow-2xl min-w-[150px] w-max"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 99999,
+              position: 'fixed',
+              isolation: 'isolate'
+            }}
+          >
+            {/* Arrow pointing up */}
+            <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-gray-300 transform rotate-45" />
+            
+            {/* Content */}
+            <div className="relative bg-white rounded-lg overflow-hidden">
+              <div className="py-2">
+                {PRIORITY_OPTIONS.map((priority) => (
+                  <button
+                    key={priority.value}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onChange(priority.value)
+                      setIsOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className={`inline-block px-3 py-1.5 rounded-md text-sm font-medium ${priority.color}`}>
+                      {priority.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </>
-      )}
+        </>,
+        document.body
+      ) : null}
     </div>
   )
 }
