@@ -19,9 +19,11 @@ interface ItemTableRowProps {
   columns: Column[]
   boardId: string
   columnWidths?: Record<string, number>
+  isSelected?: boolean
+  onToggleSelection?: () => void
 }
 
-export default function ItemTableRow({ item, columns, boardId, columnWidths }: ItemTableRowProps) {
+export default function ItemTableRow({ item, columns, boardId, columnWidths, isSelected = false, onToggleSelection }: ItemTableRowProps) {
   const [columnValues, setColumnValues] = useState<Record<string, any>>({})
   const [showModal, setShowModal] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
@@ -333,8 +335,16 @@ export default function ItemTableRow({ item, columns, boardId, columnWidths }: I
         <div className="w-10 flex-shrink-0 px-3 py-3.5 flex items-center border-r border-[rgba(199,157,69,0.15)]">
           <input
             type="checkbox"
-            className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded"
+            checked={isSelected}
+            onChange={(e) => {
+              e.stopPropagation()
+              onToggleSelection?.()
+            }}
             onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded focus:ring-2 focus:ring-[#C79D45] cursor-pointer"
+            style={{
+              accentColor: '#C79D45'
+            }}
           />
         </div>
 

@@ -18,6 +18,9 @@ interface GroupSectionProps {
   onToggle: (groupId: string, isCollapsed: boolean) => void
   onCreateItem: (groupId: string, name: string) => void
   boardId: string
+  selectedItems?: Set<string>
+  onToggleItemSelection?: (itemId: string) => void
+  onSelectAllInGroup?: (itemIds: string[], select: boolean) => void
 }
 
 export default function GroupSection({
@@ -27,6 +30,9 @@ export default function GroupSection({
   onToggle,
   onCreateItem,
   boardId,
+  selectedItems = new Set(),
+  onToggleItemSelection,
+  onSelectAllInGroup,
 }: GroupSectionProps) {
   const [showItemInput, setShowItemInput] = useState(false)
   const [itemName, setItemName] = useState('')
@@ -180,7 +186,23 @@ export default function GroupSection({
           {/* Header das Colunas */}
           <div className="sticky top-0 z-20 bg-gradient-to-b from-[#1A2A1D] to-[#152018] border-b-2 border-[rgba(199,157,69,0.4)] shadow-md">
             <div className="flex min-w-max">
-              <div className="w-10 flex-shrink-0 px-3 py-3 border-r border-[rgba(199,157,69,0.2)]"></div>
+              <div className="w-10 flex-shrink-0 px-3 py-3 border-r border-[rgba(199,157,69,0.2)] flex items-center justify-center">
+                {items.length > 0 && onSelectAllInGroup && (
+                  <input
+                    type="checkbox"
+                    checked={items.length > 0 && items.every(item => selectedItems.has(item.id))}
+                    onChange={(e) => {
+                      const itemIds = items.map(item => item.id)
+                      onSelectAllInGroup(itemIds, e.target.checked)
+                    }}
+                    className="w-4 h-4 text-[#C79D45] border-[rgba(199,157,69,0.3)] rounded focus:ring-2 focus:ring-[#C79D45] cursor-pointer"
+                    style={{
+                      accentColor: '#C79D45'
+                    }}
+                    title="Selecionar todos neste grupo"
+                  />
+                )}
+              </div>
               <div className="w-72 flex-shrink-0 px-4 py-3.5 border-r border-[rgba(199,157,69,0.2)] bg-gradient-to-r from-[#1A2A1D] to-[#1f3322]">
                 <span className="text-xs font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider">Elemento</span>
               </div>
@@ -237,6 +259,8 @@ export default function GroupSection({
                 columns={columns}
                 boardId={boardId}
                 columnWidths={columnWidths}
+                isSelected={selectedItems.has(item.id)}
+                onToggleSelection={onToggleItemSelection ? () => onToggleItemSelection(item.id) : undefined}
               />
             ))}
 

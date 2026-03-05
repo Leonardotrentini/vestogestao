@@ -11,6 +11,7 @@ import IntelligenceBoard from '@/components/analytics/IntelligenceBoard'
 import PerformanceDashboard from '@/components/analytics/PerformanceDashboard'
 import BoardVisualizations from './BoardVisualizations'
 import { GroupSkeleton } from '@/components/common/Skeleton'
+import BulkActions from './BulkActions'
 
 interface BoardViewProps {
   boardId: string
@@ -28,6 +29,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'charts'>('table')
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const supabase = createClient()
 
   // Verificar query param para forçar dashboard
@@ -214,6 +216,60 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     }
   }
 
+  const handleToggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
+
+  const handleClearSelection = () => {
+    setSelectedItems(new Set())
+  }
+
+  const handleSelectAllInGroup = (itemIds: string[], select: boolean) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev)
+      if (select) {
+        itemIds.forEach(id => newSet.add(id))
+      } else {
+        itemIds.forEach(id => newSet.delete(id))
+      }
+      return newSet
+    })
+  }
+
+  const handleBulkMove = async (targetGroupId: string) => {
+    const itemIds = Array.from(selectedItems)
+    
+    for (const itemId of itemIds) {
+      await supabase
+        .from('items')
+        .update({ group_id: targetGroupId })
+        .eq('id', itemId)
+    }
+
+    loadData()
+  }
+
+  const handleBulkDelete = async () => {
+    const itemIds = Array.from(selectedItems)
+    
+    for (const itemId of itemIds) {
+      await supabase
+        .from('items')
+        .delete()
+        .eq('id', itemId)
+    }
+
+    loadData()
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-[#0F1711]">
@@ -381,6 +437,9 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
                   onMoveItem={handleMoveItem}
                   onMoveGroup={handleMoveGroup}
                   boardId={boardId}
+                  selectedItems={selectedItems}
+                  onToggleItemSelection={handleToggleItemSelection}
+                  onSelectAllInGroup={handleSelectAllInGroup}
                 />
               ) : viewMode === 'charts' ? (
                 <BoardVisualizations
@@ -483,7 +542,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           </div>
         </div>
       )}
-      {(!normalizedSearch || filteredItems.length > 0) && (
+          {(!normalizedSearch || filteredItems.length > 0) && (
         <div className="flex-1 overflow-auto">
           {viewMode === 'table' ? (
             <BoardTable
@@ -495,6 +554,9 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
               onMoveItem={handleMoveItem}
               onMoveGroup={handleMoveGroup}
               boardId={boardId}
+              selectedItems={selectedItems}
+              onToggleItemSelection={handleToggleItemSelection}
+              onSelectAllInGroup={handleSelectAllInGroup}
             />
           ) : viewMode === 'charts' ? (
             <BoardVisualizations
@@ -512,6 +574,17 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
             />
           )}
         </div>
+      )}
+      
+      {/* Bulk Actions */}
+      {viewMode === 'table' && (
+        <BulkActions
+          selectedItems={Array.from(selectedItems)}
+          groups={groups}
+          onMove={handleBulkMove}
+          onDelete={handleBulkDelete}
+          onClearSelection={handleClearSelection}
+        />
       )}
     </div>
   )

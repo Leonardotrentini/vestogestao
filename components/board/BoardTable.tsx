@@ -16,6 +16,9 @@ interface BoardTableProps {
   onMoveItem?: (itemId: string, targetGroupId: string) => void
   onMoveGroup?: (activeId: string, overId: string) => void
   boardId: string
+  selectedItems?: Set<string>
+  onToggleItemSelection?: (itemId: string) => void
+  onSelectAllInGroup?: (itemIds: string[], select: boolean) => void
 }
 
 export default function BoardTable({
@@ -27,6 +30,9 @@ export default function BoardTable({
   onMoveItem,
   onMoveGroup,
   boardId,
+  selectedItems = new Set(),
+  onToggleItemSelection,
+  onSelectAllInGroup,
 }: BoardTableProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -92,6 +98,9 @@ export default function BoardTable({
                 onToggle={onToggleGroup}
                 onCreateItem={onCreateItem}
                 boardId={boardId}
+                selectedItems={selectedItems}
+                onToggleItemSelection={onToggleItemSelection}
+                onSelectAllInGroup={onSelectAllInGroup}
               />
             ))}
           </SortableContext>
