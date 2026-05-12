@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getSupabaseAnonOrPublishableKey, getSupabasePublicUrl } from "@/lib/supabase/public-env"
 import { redirect } from "next/navigation"
 import { getDefaultUserId } from "@/lib/utils"
 
@@ -6,6 +7,36 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   try {
+    // Verificar variáveis de ambiente primeiro
+    const supabaseUrl = getSupabasePublicUrl()
+    const supabaseAnonKey = getSupabaseAnonOrPublishableKey()
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md p-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Variáveis de ambiente não configuradas</h1>
+            <p className="text-gray-600 mb-4">
+              As variáveis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) não estão configuradas na Vercel.
+            </p>
+            <div className="text-left bg-gray-100 p-4 rounded mb-4">
+              <p className="text-sm font-semibold mb-2">Configure na Vercel:</p>
+              <ul className="text-xs text-gray-700 space-y-1">
+                <li>• Settings → Environment Variables</li>
+                <li>• Adicione NEXT_PUBLIC_SUPABASE_URL</li>
+                <li>• Adicione NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</li>
+                <li>• Clique em "Redeploy" após adicionar</li>
+              </ul>
+            </div>
+            <p className="text-xs text-gray-500">
+              URL configurada: {supabaseUrl ? '✅ Sim' : '❌ Não'}<br/>
+              Key configurada: {supabaseAnonKey ? '✅ Sim' : '❌ Não'}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     const supabase = await createClient()
     const defaultUserId = getDefaultUserId()
 
@@ -21,6 +52,36 @@ export default async function Home() {
 
     if (errorOficial) {
       console.error('Erro ao buscar workspace oficial:', errorOficial)
+      // Se for erro de conexão, mostrar mensagem específica
+      if (errorOficial.message?.includes('fetch') || errorOficial.message?.includes('Failed to fetch')) {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center max-w-md p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Erro ao conectar com o banco de dados</h1>
+              <p className="text-gray-600 mb-4">
+                Não foi possível conectar com o Supabase. Verifique:
+              </p>
+              <div className="text-left bg-gray-100 p-4 rounded mb-4">
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li>• O projeto Supabase está ativo?</li>
+                  <li>• A URL do Supabase está correta?</li>
+                  <li>• As variáveis de ambiente estão configuradas na Vercel?</li>
+                  <li>• Você fez redeploy após configurar as variáveis?</li>
+                </ul>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Erro: {errorOficial.message}
+              </p>
+              <a 
+                href="/workspaces/new" 
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Tentar criar workspace manualmente
+              </a>
+            </div>
+          </div>
+        )
+      }
     }
 
     if (oficialWorkspaces && oficialWorkspaces.length > 0) {
@@ -35,6 +96,36 @@ export default async function Home() {
 
       if (errorFirst) {
         console.error('Erro ao buscar primeiro workspace:', errorFirst)
+        // Se for erro de conexão, mostrar mensagem específica
+        if (errorFirst.message?.includes('fetch') || errorFirst.message?.includes('Failed to fetch')) {
+          return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center max-w-md p-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Erro ao conectar com o banco de dados</h1>
+                <p className="text-gray-600 mb-4">
+                  Não foi possível conectar com o Supabase. Verifique:
+                </p>
+                <div className="text-left bg-gray-100 p-4 rounded mb-4">
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    <li>• O projeto Supabase está ativo?</li>
+                    <li>• A URL do Supabase está correta?</li>
+                    <li>• As variáveis de ambiente estão configuradas na Vercel?</li>
+                    <li>• Você fez redeploy após configurar as variáveis?</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">
+                  Erro: {errorFirst.message}
+                </p>
+                <a 
+                  href="/workspaces/new" 
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Tentar criar workspace manualmente
+                </a>
+              </div>
+            </div>
+          )
+        }
       }
 
       if (firstWorkspaces && firstWorkspaces.length > 0) {
@@ -56,15 +147,31 @@ export default async function Home() {
 
       if (errorCreate) {
         console.error('Erro ao criar workspace:', errorCreate)
+        // Verificar se é erro de conexão
+        const isConnectionError = errorCreate.message?.includes('fetch') || 
+                                 errorCreate.message?.includes('Failed to fetch') ||
+                                 errorCreate.message?.includes('TypeError')
+        
         return (
           <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center max-w-md">
+            <div className="text-center max-w-md p-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Erro ao conectar com o banco de dados</h1>
               <p className="text-gray-600 mb-4">
-                Verifique se as variáveis de ambiente estão configuradas corretamente na Vercel.
+                {isConnectionError 
+                  ? 'Não foi possível conectar com o Supabase. Verifique:'
+                  : 'Erro ao criar workspace. Verifique:'}
               </p>
-              <p className="text-sm text-gray-500 mb-4">
-                Erro: {errorCreate.message}
+              <div className="text-left bg-gray-100 p-4 rounded mb-4">
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li>• O projeto Supabase está ativo?</li>
+                  <li>• A URL do Supabase está correta na Vercel?</li>
+                  <li>• A chave anon está correta na Vercel?</li>
+                  <li>• Você fez redeploy após configurar as variáveis?</li>
+                  {!isConnectionError && <li>• A tabela workspaces existe no banco?</li>}
+                </ul>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Erro: {errorCreate.message || 'Erro desconhecido'}
               </p>
               <a 
                 href="/workspaces/new" 
@@ -111,15 +218,32 @@ export default async function Home() {
     }
     
     console.error('Erro na página inicial:', error)
+    
+    // Verificar se é erro de variáveis de ambiente
+    const isEnvError = error.message?.includes('Missing Supabase') || 
+                      error.message?.includes('environment variables')
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md">
+        <div className="text-center max-w-md p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Erro ao inicializar aplicação</h1>
           <p className="text-gray-600 mb-4">
-            {error.message || 'Erro desconhecido'}
+            {isEnvError 
+              ? 'Variáveis de ambiente do Supabase não configuradas'
+              : error.message || 'Erro desconhecido'}
           </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Verifique se as variáveis de ambiente NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas na Vercel.
+          <div className="text-left bg-gray-100 p-4 rounded mb-4">
+            <p className="text-sm font-semibold mb-2">Solução:</p>
+            <ul className="text-xs text-gray-700 space-y-1">
+              <li>1. Acesse o dashboard da Vercel</li>
+              <li>2. Vá em Settings → Environment Variables</li>
+              <li>3. Adicione NEXT_PUBLIC_SUPABASE_URL</li>
+              <li>4. Adicione NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</li>
+              <li>5. Clique em "Redeploy" para aplicar</li>
+            </ul>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">
+            {error.message && !isEnvError && `Detalhes: ${error.message}`}
           </p>
           <a 
             href="/workspaces/new" 

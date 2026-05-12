@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { getSupabaseAnonOrPublishableKey, getSupabasePublicUrl } from '@/lib/supabase/public-env'
 
 export async function POST() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabaseUrl = getSupabasePublicUrl()
+    const supabaseKey = getSupabaseAnonOrPublishableKey()
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Supabase URL ou chave pública não configurada' },
+        { status: 500 }
+      )
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
     const serverSupabase = await createServerClient()

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getSupabaseAnonOrPublishableKey } from '@/lib/supabase/public-env'
 
 // Esta rota cria o usuário admin
 // IMPORTANTE: Use apenas em desenvolvimento ou com autenticação adequada
@@ -18,7 +19,8 @@ export async function POST() {
     if (!supabaseServiceKey) {
       // Se não tiver service key, usar o client normal (pode não funcionar para criar usuários)
       const { createClient: createClientBrowser } = await import('@supabase/supabase-js')
-      const supabase = createClientBrowser(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
+      const anonOrPub = getSupabaseAnonOrPublishableKey() || ''
+      const supabase = createClientBrowser(supabaseUrl, anonOrPub)
 
       const { data, error } = await supabase.auth.signUp({
         email: 'leozikao50@gmail.com',
