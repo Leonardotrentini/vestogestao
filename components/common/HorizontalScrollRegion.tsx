@@ -1,6 +1,14 @@
 'use client'
 
-import { useRef, useState, useCallback, useEffect, type ReactNode, type WheelEvent } from 'react'
+import {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+  type WheelEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 
 type Props = {
   children: ReactNode
@@ -12,8 +20,10 @@ type Props = {
 }
 
 /**
- * Scroll horizontal mais usável no PC: Shift + roda, deltaX de trackpad,
- * e indicadores visuais quando há mais conteúdo à esquerda/direita.
+ * Scroll horizontal mais usável no PC:
+ * - Shift + roda, deltaX de trackpad
+ * - Arrastar para pan: botão do meio do rato, ou Alt + botão esquerdo (só scroll, não move itens)
+ * - Indicadores visuais quando há mais conteúdo à esquerda/direita
  */
 export default function HorizontalScrollRegion({
   children,
@@ -23,6 +33,9 @@ export default function HorizontalScrollRegion({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ left: false, right: false })
+  const [isPointerPanning, setIsPointerPanning] = useState(false)
+  const panPointerId = useRef<number | null>(null)
+  const lastPanClientX = useRef(0)
 
   const updateEdges = useCallback(() => {
     const el = ref.current
@@ -70,10 +83,106 @@ export default function HorizontalScrollRegion({
     [updateEdges]
   )
 
+  const shouldIgnorePanTarget = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof Element)) return false
+    return !!target.closest(
+      [
+        'input',
+        'textarea',
+        'select',
+        'button',
+        '[contenteditable="true"]',
+        'a[href]',
+        '[data-column-resize-handle]',
+        '[role="combobox"]',
+        '[role="listbox"]',
+        '[role="slider"]',
+      ].join(', ')
+    )
+  }, [])
+
+  const endPointerPan = useCallback(() => {
+    const id = panPointerId.current
+    panPointerId.current = null
+    setIsPointerPanning(false)
+    document.body.style.removeProperty('user-select')
+    if (id != null && ref.current) {
+      try {
+        ref.current.releasePointerCapture(id)
+      } catch {
+        /* já libertado */
+      }
+    }
+  }, [])
+
+  const onPointerDownCapture = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      const el = ref.current
+      if (!el || el.scrollWidth <= el.clientWidth + 2) return
+      if (e.pointerType !== 'mouse') return
+
+      const middle = e.button === 1
+      const altLeft = e.button === 0 && e.altKey
+      if (!middle && !altLeft) return
+      if (shouldIgnorePanTarget(e.target)) return
+
+      e.preventDefault()
+      panPointerId.current = e.pointerId
+      lastPanClientX.current = e.clientX
+      setIsPointerPanning(true)
+      document.body.style.userSelect = 'none'
+      try {
+        el.setPointerCapture(e.pointerId)
+      } catch {
+        endPointerPan()
+      }
+    },
+    [shouldIgnorePanTarget, endPointerPan]
+  )
+
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (panPointerId.current !== e.pointerId) return
+      const el = ref.current
+      if (!el) return
+      const dx = e.clientX - lastPanClientX.current
+      lastPanClientX.current = e.clientX
+      el.scrollLeft -= dx
+      updateEdges()
+    },
+    [updateEdges]
+  )
+
+  const onPointerUpOrCancel = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (panPointerId.current !== e.pointerId) return
+      endPointerPan()
+    },
+    [endPointerPan]
+  )
+
+  const onLostPointerCapture = useCallback(() => {
+    if (panPointerId.current != null) {
+      panPointerId.current = null
+      setIsPointerPanning(false)
+      document.body.style.removeProperty('user-select')
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (panPointerId.current != null) {
+        document.body.style.removeProperty('user-select')
+      }
+    }
+  }, [])
+
   return (
     <div
       className={
-        compact ? 'relative w-full min-w-0' : 'relative h-full min-h-0 min-w-0 flex-1'
+        compact
+          ? 'relative w-full min-w-0'
+          : 'relative flex h-full min-h-0 min-w-0 flex-1 flex-col'
       }
     >
       {edges.left && (
@@ -94,7 +203,17 @@ export default function HorizontalScrollRegion({
           aria-hidden
         />
       )}
-      <div ref={ref} onScroll={updateEdges} onWheel={onWheel} className={className}>
+      <div
+        ref={ref}
+        onScroll={updateEdges}
+        onWheel={onWheel}
+        onPointerDownCapture={onPointerDownCapture}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUpOrCancel}
+        onPointerCancel={onPointerUpOrCancel}
+        onLostPointerCapture={onLostPointerCapture}
+        className={`min-h-0 ${isPointerPanning ? 'cursor-grabbing' : ''} ${className}`.trim()}
+      >
         {children}
       </div>
     </div>

@@ -189,6 +189,7 @@ export default function ResizableColumnHeader({
         {/* Handle de redimensionamento - área maior para facilitar o clique */}
         <div
           ref={resizeHandleRef}
+          data-column-resize-handle
           className={`absolute top-0 right-0 w-3 h-full cursor-col-resize transition-all z-20 ${
             isResizing 
               ? 'bg-[#C79D45] opacity-100' 

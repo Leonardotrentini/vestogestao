@@ -20,6 +20,8 @@ interface BoardTableProps {
   selectedItems?: Set<string>
   onToggleItemSelection?: (itemId: string) => void
   onSelectAllInGroup?: (itemIds: string[], select: boolean) => void
+  /** Espaço extra em baixo quando a barra fixa de ações em massa está visível */
+  reserveBulkBarPadding?: boolean
 }
 
 export default function BoardTable({
@@ -34,6 +36,7 @@ export default function BoardTable({
   selectedItems = new Set(),
   onToggleItemSelection,
   onSelectAllInGroup,
+  reserveBulkBarPadding = false,
 }: BoardTableProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -82,15 +85,17 @@ export default function BoardTable({
   const groupIds = groups.map(g => g.id)
 
   return (
-    <DndContext
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <HorizontalScrollRegion
-        className="w-full h-full overflow-x-auto overflow-y-auto p-6"
-        edgeFadeFrom="#0F1711"
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
+      <DndContext
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
+        <div className="flex min-h-0 flex-1 flex-col">
+          <HorizontalScrollRegion
+            className={`flex-1 overflow-x-auto overflow-y-auto p-6 ${reserveBulkBarPadding ? 'pb-28' : ''}`}
+            edgeFadeFrom="#0F1711"
+          >
         <div className="min-w-max space-y-6">
           <SortableContext items={groupIds} strategy={verticalListSortingStrategy}>
             {groups.map((group) => (
@@ -111,7 +116,7 @@ export default function BoardTable({
         </div>
       </HorizontalScrollRegion>
 
-      <DragOverlay>
+        <DragOverlay>
         {activeItem ? (
           <div className="flex min-w-max border-b border-[rgba(199,157,69,0.2)] bg-[rgba(199,157,69,0.2)] opacity-50">
             <div className="w-8 flex-shrink-0 px-2 py-2 border-r border-[rgba(199,157,69,0.2)]"></div>
@@ -126,7 +131,9 @@ export default function BoardTable({
             </div>
           </div>
         ) : null}
-      </DragOverlay>
+        </DragOverlay>
+        </div>
     </DndContext>
+    </div>
   )
 }

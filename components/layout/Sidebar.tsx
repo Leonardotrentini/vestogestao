@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Board } from '@/supabase/migrations/types'
@@ -31,9 +31,11 @@ import { CSS } from '@dnd-kit/utilities'
 interface SidebarProps {
   workspaceId: string
   currentBoardId?: string
+  /** Largura efetiva da sidebar em px (recolhida = 60); para alinhar o conteúdo principal */
+  onInsetPxChange?: (widthPx: number) => void
 }
 
-export default function Sidebar({ workspaceId, currentBoardId }: SidebarProps) {
+export default function Sidebar({ workspaceId, currentBoardId, onInsetPxChange }: SidebarProps) {
   const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(true)
   const [hoveredBoard, setHoveredBoard] = useState<string | null>(null)
@@ -52,22 +54,27 @@ export default function Sidebar({ workspaceId, currentBoardId }: SidebarProps) {
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
+  /** Evita notificar inset com estado default antes de aplicar localStorage */
+  const skipInsetFromStateOnce = useRef(true)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
   const { showSuccess, showError } = useToast()
 
-  // Carregar preferências do localStorage
-  useEffect(() => {
+  // Preferências do localStorage + margem do conteúdo principal (mesmo layout frame)
+  useLayoutEffect(() => {
     const savedCollapsed = localStorage.getItem('sidebarCollapsed')
     const savedWidth = localStorage.getItem('sidebarWidth')
-    if (savedCollapsed === 'true') {
-      setIsCollapsed(true)
-    }
+    const collapsed = savedCollapsed === 'true'
+    let w = 256
     if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth, 10))
+      const parsed = parseInt(savedWidth, 10)
+      if (!Number.isNaN(parsed)) w = parsed
     }
-  }, [])
+    setIsCollapsed(collapsed)
+    setSidebarWidth(w)
+    onInsetPxChange?.(collapsed ? 60 : w)
+  }, [onInsetPxChange])
 
   // Salvar preferências no localStorage
   useEffect(() => {
@@ -77,6 +84,15 @@ export default function Sidebar({ workspaceId, currentBoardId }: SidebarProps) {
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString())
   }, [sidebarWidth])
+
+  useLayoutEffect(() => {
+    if (skipInsetFromStateOnce.current) {
+      skipInsetFromStateOnce.current = false
+      return
+    }
+    const w = isCollapsed ? 60 : sidebarWidth
+    onInsetPxChange?.(w)
+  }, [isCollapsed, sidebarWidth, onInsetPxChange])
 
   // Handlers para redimensionamento
   useEffect(() => {

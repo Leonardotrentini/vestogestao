@@ -304,7 +304,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
         <BoardHeader 
           boardName={boardName} 
           onCreateGroup={handleCreateGroup}
@@ -318,7 +318,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
           <GroupSkeleton />
           <GroupSkeleton />
           <GroupSkeleton />
@@ -330,7 +330,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   // Se for documento, renderizar editor de texto
   if (boardType === 'document') {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
         <BoardHeader 
           boardName={boardName} 
           onCreateGroup={handleCreateGroup}
@@ -344,7 +344,9 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
-        <DocumentEditor boardId={boardId} initialContent={boardContent} />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <DocumentEditor boardId={boardId} initialContent={boardContent} />
+        </div>
       </div>
     )
   }
@@ -352,7 +354,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
   // Se for intelligence board, renderizar dashboard de analytics
   if (boardType === 'intelligence') {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0F1711]">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
         <BoardHeader 
           boardName={boardName} 
           onCreateGroup={handleCreateGroup}
@@ -366,7 +368,9 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
-        <IntelligenceBoard workspaceId={workspaceId} />
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <IntelligenceBoard workspaceId={workspaceId} />
+        </div>
       </div>
     )
   }
@@ -376,8 +380,8 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     // Aguardar carregamento antes de decidir
     if (loading) {
       return (
-        <div className="flex flex-col min-h-screen bg-[#0F1711]">
-          <div className="flex-1 flex items-center justify-center">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
+          <div className="flex min-h-0 flex-1 items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C79D45] mx-auto mb-4"></div>
               <p className="text-[rgba(255,255,255,0.7)]">Carregando...</p>
@@ -420,7 +424,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         : groups
 
       return (
-        <div className="flex flex-col min-h-screen bg-[#0F1711]">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
           <BoardHeader 
             boardName={boardName} 
             onCreateGroup={handleCreateGroup}
@@ -441,7 +445,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
             }}
           />
           {normalizedSearch && filteredItems.length === 0 && (
-            <div className="flex-1 flex items-center justify-center p-8">
+            <div className="flex min-h-0 flex-1 items-center justify-center p-8">
               <div className="text-center space-y-4">
                 <div className="text-6xl mb-4">🔍</div>
                 <p className="text-[rgba(255,255,255,0.7)] text-base mb-1">
@@ -458,11 +462,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
             </div>
           )}
           {(!normalizedSearch || filteredItems.length > 0) && (
-            <div
-              className={`flex-1 overflow-auto ${
-                viewMode === 'table' && selectedItems.size > 0 ? 'pb-28' : ''
-              }`}
-            >
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {viewMode === 'table' ? (
                 <BoardTable
                   groups={filteredGroups}
@@ -476,21 +476,26 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
                   selectedItems={selectedItems}
                   onToggleItemSelection={handleToggleItemSelection}
                   onSelectAllInGroup={handleSelectAllInGroup}
+                  reserveBulkBarPadding={selectedItems.size > 0}
                 />
               ) : viewMode === 'charts' ? (
-                <BoardVisualizations
-                  items={filteredItems}
-                  columns={columns}
-                  columnValues={columnValues}
-                />
+                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                  <BoardVisualizations
+                    items={filteredItems}
+                    columns={columns}
+                    columnValues={columnValues}
+                  />
+                </div>
               ) : (
-                <BoardKanbanView
-                  groups={filteredGroups}
-                  items={filteredItems}
-                  columns={columns}
-                  onCreateItem={handleCreateItem}
-                  boardId={boardId}
-                />
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                  <BoardKanbanView
+                    groups={filteredGroups}
+                    items={filteredItems}
+                    columns={columns}
+                    onCreateItem={handleCreateItem}
+                    boardId={boardId}
+                  />
+                </div>
               )}
             </div>
           )}
@@ -521,7 +526,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     }
 
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <PerformanceDashboard 
           boardId={boardId} 
           workspaceId={workspaceId}
@@ -558,7 +563,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     : groups
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0F1711]">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#0F1711]">
       <BoardHeader 
         boardName={boardName} 
         onCreateGroup={handleCreateGroup}
@@ -572,7 +577,7 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         onSearchChange={setSearchTerm}
       />
       {normalizedSearch && filteredItems.length === 0 && (
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-8">
           <div className="text-center space-y-4">
             <div className="text-6xl mb-4">🔍</div>
             <p className="text-[rgba(255,255,255,0.7)] text-base mb-1">
@@ -588,12 +593,8 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
           </div>
         </div>
       )}
-          {(!normalizedSearch || filteredItems.length > 0) && (
-        <div
-          className={`flex-1 overflow-auto ${
-            viewMode === 'table' && selectedItems.size > 0 ? 'pb-28' : ''
-          }`}
-        >
+      {(!normalizedSearch || filteredItems.length > 0) && (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {viewMode === 'table' ? (
             <BoardTable
               groups={filteredGroups}
@@ -607,21 +608,26 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
               selectedItems={selectedItems}
               onToggleItemSelection={handleToggleItemSelection}
               onSelectAllInGroup={handleSelectAllInGroup}
+              reserveBulkBarPadding={selectedItems.size > 0}
             />
           ) : viewMode === 'charts' ? (
-            <BoardVisualizations
-              items={filteredItems}
-              columns={columns}
-              columnValues={columnValues}
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+              <BoardVisualizations
+                items={filteredItems}
+                columns={columns}
+                columnValues={columnValues}
+              />
+            </div>
           ) : (
-            <BoardKanbanView
-              groups={filteredGroups}
-              items={filteredItems}
-              columns={columns}
-              onCreateItem={handleCreateItem}
-              boardId={boardId}
-            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              <BoardKanbanView
+                groups={filteredGroups}
+                items={filteredItems}
+                columns={columns}
+                onCreateItem={handleCreateItem}
+                boardId={boardId}
+              />
+            </div>
           )}
         </div>
       )}
