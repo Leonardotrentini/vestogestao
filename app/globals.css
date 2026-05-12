@@ -199,4 +199,19 @@ input, textarea {
   color: rgba(255, 255, 255, 0.95) !important;
 }
 
+/* Acessibilidade: foco visível coerente com o tema */
+*:focus-visible {
+  outline: 2px solid #C79D45;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
 

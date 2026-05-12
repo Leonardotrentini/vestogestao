@@ -1,5 +1,7 @@
 'use client'
 
+import HorizontalScrollRegion from '@/components/common/HorizontalScrollRegion'
+
 interface TopPerformersProps {
   anuncios: Array<{
     anuncio: string
@@ -34,7 +36,7 @@ export default function TopPerformers({ anuncios, publicos }: TopPerformersProps
         <p className="text-xs text-[rgba(255,255,255,0.5)] mb-4">
           Top 5 anúncios que mais trouxeram público qualificado
         </p>
-        <div className="overflow-x-auto">
+        <HorizontalScrollRegion className="overflow-x-auto max-w-full" edgeFadeFrom="rgba(26,42,29,0.98)" compact>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(199,157,69,0.2)]">
@@ -76,7 +78,7 @@ export default function TopPerformers({ anuncios, publicos }: TopPerformersProps
               )}
             </tbody>
           </table>
-        </div>
+        </HorizontalScrollRegion>
       </div>
 
       {/* Públicos Campeões */}
@@ -87,7 +89,7 @@ export default function TopPerformers({ anuncios, publicos }: TopPerformersProps
         <p className="text-xs text-[rgba(255,255,255,0.5)] mb-4">
           Top 5 públicos que mais trouxeram leads qualificados
         </p>
-        <div className="overflow-x-auto">
+        <HorizontalScrollRegion className="overflow-x-auto max-w-full" edgeFadeFrom="rgba(26,42,29,0.98)" compact>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(199,157,69,0.2)]">
@@ -129,7 +131,7 @@ export default function TopPerformers({ anuncios, publicos }: TopPerformersProps
               )}
             </tbody>
           </table>
-        </div>
+        </HorizontalScrollRegion>
       </div>
     </div>
   )

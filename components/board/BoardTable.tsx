@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Group, Item, Column } from '@/supabase/migrations/types'
 import GroupSection from './GroupSection'
 import ItemTableRow from '../item/ItemTableRow'
+import HorizontalScrollRegion from '@/components/common/HorizontalScrollRegion'
 
 interface BoardTableProps {
   groups: Group[]
@@ -86,7 +87,10 @@ export default function BoardTable({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="w-full h-full overflow-x-auto overflow-y-auto p-6" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(199,157,69,0.3) rgba(26,42,29,0.5)' }}>
+      <HorizontalScrollRegion
+        className="w-full h-full overflow-x-auto overflow-y-auto p-6"
+        edgeFadeFrom="#0F1711"
+      >
         <div className="min-w-max space-y-6">
           <SortableContext items={groupIds} strategy={verticalListSortingStrategy}>
             {groups.map((group) => (
@@ -105,7 +109,7 @@ export default function BoardTable({
             ))}
           </SortableContext>
         </div>
-      </div>
+      </HorizontalScrollRegion>
 
       <DragOverlay>
         {activeItem ? (

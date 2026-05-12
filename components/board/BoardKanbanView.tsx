@@ -7,6 +7,7 @@ import { Group, Item, Column } from '@/supabase/migrations/types'
 import { createClient } from '@/lib/supabase/client'
 import KanbanColumn from './KanbanColumn'
 import KanbanCard from './KanbanCard'
+import HorizontalScrollRegion from '@/components/common/HorizontalScrollRegion'
 
 interface BoardKanbanViewProps {
   groups: Group[]
@@ -82,7 +83,7 @@ export default function BoardKanbanView({ groups, items, columns, onCreateItem, 
   const activeItem = activeId ? localItems.find(item => item.id === activeId) : null
 
   return (
-    <div className="flex-1 bg-[#0F1711] p-4 overflow-x-auto">
+    <HorizontalScrollRegion className="flex-1 bg-[#0F1711] p-4 overflow-x-auto overflow-y-hidden min-h-0" edgeFadeFrom="#0F1711">
       <DndContext
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
@@ -115,7 +116,7 @@ export default function BoardKanbanView({ groups, items, columns, onCreateItem, 
           ) : null}
         </DragOverlay>
       </DndContext>
-    </div>
+    </HorizontalScrollRegion>
   )
 }
 

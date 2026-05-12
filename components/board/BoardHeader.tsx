@@ -68,6 +68,7 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
               onClick={onBackToDashboard}
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-[rgba(255,255,255,0.6)] hover:text-[rgba(255,255,255,0.9)] hover:bg-[rgba(199,157,69,0.1)] rounded transition-colors border border-transparent hover:border-[rgba(199,157,69,0.2)]"
               title="Voltar para visualização de dashboard"
+              aria-label="Voltar para visualização de dashboard"
             >
               <ArrowLeft size={14} />
               <span>Dashboard</span>
@@ -82,20 +83,23 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
             <div className="flex items-center gap-2 bg-[rgba(0,0,0,0.25)] border border-[rgba(199,157,69,0.3)] rounded-lg px-3 py-2 transition-all w-72 focus-within:border-[rgba(199,157,69,0.5)]">
               <Search size={16} className="text-[rgba(255,255,255,0.8)] flex-shrink-0" />
               <input
+                id="board-search-input"
                 type="text"
                 value={localSearchTerm}
                 onChange={(e) => setLocalSearchTerm(e.target.value)}
                 placeholder="Buscar neste quadro"
+                aria-label="Buscar neste quadro"
                 className="flex-1 bg-transparent text-sm text-[rgba(255,255,255,0.95)] placeholder:text-[rgba(255,255,255,0.5)] focus:outline-none"
               />
               {localSearchTerm && (
                 <button
+                  type="button"
                   onClick={() => {
                     setLocalSearchTerm('')
                     onSearchChange?.('')
                   }}
                   className="flex-shrink-0 p-1 hover:bg-[rgba(199,157,69,0.2)] rounded transition-colors"
-                  title="Limpar busca"
+                  aria-label="Limpar busca"
                 >
                   <X size={14} className="text-[rgba(255,255,255,0.7)]" />
                 </button>
@@ -107,44 +111,50 @@ export default function BoardHeader({ boardName, onCreateGroup, boardId, workspa
           {onViewModeChange && !isDocument && (
             <div className="flex items-center bg-[rgba(0,0,0,0.3)] rounded-lg p-1 border border-[rgba(199,157,69,0.3)]">
               <button
+                type="button"
                 onClick={() => onViewModeChange('table')}
+                aria-pressed={viewMode === 'table'}
+                aria-label="Visualização em tabela"
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   viewMode === 'table'
                     ? 'bg-[rgba(199,157,69,0.2)] text-[#C79D45] shadow-sm border border-[rgba(199,157,69,0.4)]'
                     : 'text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]'
                 }`}
-                title="Visualização em Tabela"
               >
                 <div className="flex items-center gap-2">
-                  <Table size={16} />
+                  <Table size={16} aria-hidden />
                   <span>Tabela</span>
                 </div>
               </button>
               <button
+                type="button"
                 onClick={() => onViewModeChange('kanban')}
+                aria-pressed={viewMode === 'kanban'}
+                aria-label="Visualização em kanban"
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   viewMode === 'kanban'
                     ? 'bg-[rgba(199,157,69,0.2)] text-[#C79D45] shadow-sm border border-[rgba(199,157,69,0.4)]'
                     : 'text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]'
                 }`}
-                title="Visualização em Kanban"
               >
                 <div className="flex items-center gap-2">
-                  <LayoutGrid size={16} />
+                  <LayoutGrid size={16} aria-hidden />
                   <span>Kanban</span>
                 </div>
               </button>
               <button
+                type="button"
                 onClick={() => onViewModeChange('charts')}
+                aria-pressed={viewMode === 'charts'}
+                aria-label="Visualização em gráficos"
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   viewMode === 'charts'
                     ? 'bg-[rgba(199,157,69,0.2)] text-[#C79D45] shadow-sm border border-[rgba(199,157,69,0.4)]'
                     : 'text-[rgba(255,255,255,0.7)] hover:text-[rgba(255,255,255,0.95)] hover:bg-[rgba(199,157,69,0.1)]'
                 }`}
-                title="Visualizações e Gráficos"
               >
                 <div className="flex items-center gap-2">
-                  <BarChart3 size={16} />
+                  <BarChart3 size={16} aria-hidden />
                   <span>Gráficos</span>
                 </div>
               </button>

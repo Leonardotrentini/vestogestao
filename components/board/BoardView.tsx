@@ -60,6 +60,38 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
     }
   }, [])
 
+  // Atalhos: Ctrl/Cmd+K foca a busca; Alt+1/2/3 alterna tabela, kanban e gráficos
+  useEffect(() => {
+    if (boardType === 'document' || boardType === 'intelligence') return
+
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        document.getElementById('board-search-input')?.focus()
+        return
+      }
+
+      const target = e.target as HTMLElement | null
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+
+      if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        if (e.key === '1') {
+          e.preventDefault()
+          setViewMode('table')
+        } else if (e.key === '2') {
+          e.preventDefault()
+          setViewMode('kanban')
+        } else if (e.key === '3') {
+          e.preventDefault()
+          setViewMode('charts')
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [boardType])
+
   useEffect(() => {
     loadData()
     

@@ -1,5 +1,7 @@
 'use client'
 
+import HorizontalScrollRegion from '@/components/common/HorizontalScrollRegion'
+
 interface PerformanceTablesProps {
   responsaveis: Array<{
     nome: string
@@ -29,7 +31,7 @@ export default function PerformanceTables({ responsaveis, campanhas }: Performan
       {/* Volume por Responsável */}
       <div className="bg-[rgba(26,42,29,0.7)] backdrop-blur-xl rounded-lg p-6 border border-[rgba(199,157,69,0.2)] shadow-lg">
         <h3 className="text-lg font-bold text-[rgba(255,255,255,0.95)] mb-4">Volume por Responsável</h3>
-        <div className="overflow-x-auto">
+        <HorizontalScrollRegion className="overflow-x-auto max-w-full" edgeFadeFrom="rgba(26,42,29,0.98)" compact>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(199,157,69,0.2)]">
@@ -52,13 +54,13 @@ export default function PerformanceTables({ responsaveis, campanhas }: Performan
               ))}
             </tbody>
           </table>
-        </div>
+        </HorizontalScrollRegion>
       </div>
 
       {/* Desempenho por Campanha */}
       <div className="bg-[rgba(26,42,29,0.7)] backdrop-blur-xl rounded-lg p-6 border border-[rgba(199,157,69,0.2)] shadow-lg">
         <h3 className="text-lg font-bold text-[rgba(255,255,255,0.95)] mb-4">Desempenho por Campanha</h3>
-        <div className="overflow-x-auto">
+        <HorizontalScrollRegion className="overflow-x-auto max-w-full" edgeFadeFrom="rgba(26,42,29,0.98)" compact>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(199,157,69,0.2)]">
@@ -83,7 +85,7 @@ export default function PerformanceTables({ responsaveis, campanhas }: Performan
               ))}
             </tbody>
           </table>
-        </div>
+        </HorizontalScrollRegion>
       </div>
     </div>
   )
