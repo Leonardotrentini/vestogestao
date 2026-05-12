@@ -40,7 +40,7 @@ A Vercel vai fazer deploy automaticamente agora que você fez push!
 
 ### 1. Novos Leads
 - ✅ Novos leads sempre vão para grupo "Novos"
-- ✅ Email enviado automaticamente para 3 endereços
+- ✅ Email enviado automaticamente para 2 endereços
 
 ### 2. Email
 - ✅ Configurado com Resend
@@ -72,7 +72,7 @@ O botão "Pipeline" só aparece quando:
 3. **Conecte uma planilha** do Google Sheets
 4. **Adicione um novo lead** na planilha
 5. **Sincronize os leads**
-6. **Verifique os emails** nos 3 endereços
+6. **Verifique os emails** nos 2 endereços
 
 ---
 
@@ -90,7 +90,7 @@ O botão "Pipeline" só aparece quando:
 
 1. **Aguarde o deploy** na Vercel completar
 2. **Teste o sistema** com um novo lead
-3. **Verifique os emails** nos 3 endereços
+3. **Verifique os emails** nos 2 endereços
 4. **Conecte uma planilha** para ver o Pipeline
 
 **Tudo pronto! O sistema está sendo deployado automaticamente!** 🚀

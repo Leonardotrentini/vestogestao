@@ -76,7 +76,7 @@ EMAIL_FROM
 NOTIFICATION_EMAIL
 ```
 **Valor:** Emails que receberão notificações (separados por vírgula)  
-**Exemplo:** `vestocooficial@gmail.com,leozikao50@gmail.com,model.gustavoo@gmail.com`
+**Exemplo:** `vestocooficial@gmail.com,leozikao50@gmail.com`
 
 ---
 
@@ -160,7 +160,7 @@ Antes de fazer deploy, confirme:
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` configurada
 - [ ] `RESEND_API_KEY` configurada
 - [ ] `EMAIL_FROM` configurada (domínio verificado)
-- [ ] `NOTIFICATION_EMAIL` configurada (3 emails separados por vírgula)
+- [ ] `NOTIFICATION_EMAIL` configurada (emails separados por vírgula)
 
 ### Banco de Dados:
 - [ ] Migrações SQL executadas no Supabase
@@ -222,7 +222,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Resend (Email)
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 EMAIL_FROM=noreply@vestoco.com.br
-NOTIFICATION_EMAIL=vestocooficial@gmail.com,leozikao50@gmail.com,model.gustavoo@gmail.com
+NOTIFICATION_EMAIL=vestocooficial@gmail.com,leozikao50@gmail.com
 ```
 
 ---

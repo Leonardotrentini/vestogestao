@@ -54,7 +54,7 @@ Clique em **"Save"**.
 
 ---
 
-### 4. Adicione a terceira variável: `NOTIFICATION_EMAIL`
+### 4. Adicione a variável `NOTIFICATION_EMAIL` (destinatários dos leads)
 
 Clique novamente em **"Add Environment Variable"**.
 
@@ -65,10 +65,10 @@ NOTIFICATION_EMAIL
 
 **Valor:**
 ```
-vestocooficial@gmail.com,leozikao50@gmail.com,model.gustavoo@gmail.com
+vestocooficial@gmail.com,leozikao50@gmail.com
 ```
 
-**⚠️ IMPORTANTE:** Os 3 emails separados por vírgula, **SEM espaços** entre eles.
+**⚠️ IMPORTANTE:** Os emails separados por vírgula, **SEM espaços** entre eles.
 
 **Environment:**
 - Selecione **"Production, Preview, Development"** (ou apenas **"Production"**)
@@ -110,10 +110,9 @@ Depois de adicionar as 3 variáveis de email:
 
 Depois do redeploy, quando um novo lead chegar:
 - ✅ Vai para o grupo "Novos"
-- ✅ Email enviado para os 3 endereços:
+- ✅ Email enviado para os 2 endereços:
   - vestocooficial@gmail.com
   - leozikao50@gmail.com
-  - model.gustavoo@gmail.com
 
 ---
 
@@ -121,7 +120,7 @@ Depois do redeploy, quando um novo lead chegar:
 
 1. Adicione um novo lead na planilha do Google Sheets
 2. Sincronize os leads no sistema
-3. Verifique os 3 emails (e também a pasta de spam)
+3. Verifique os 2 emails (e também a pasta de spam)
 
 ---
 
