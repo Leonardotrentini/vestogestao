@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Move, Trash2 } from 'lucide-react'
 import { Group } from '@/supabase/migrations/types'
 import { useToast } from '@/components/common/ToastProvider'
@@ -21,8 +22,17 @@ export default function BulkActions({ selectedItems, groups, onMove, onDelete, o
   const [isDeleting, setIsDeleting] = useState(false)
   const [targetGroupId, setTargetGroupId] = useState('')
   const { showSuccess, showError } = useToast()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   if (selectedItems.length === 0) {
+    return null
+  }
+
+  if (!mounted || typeof document === 'undefined') {
     return null
   }
 
@@ -62,9 +72,9 @@ export default function BulkActions({ selectedItems, groups, onMove, onDelete, o
     }
   }
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-[#1A2A1D] border-2 border-[rgba(199,157,69,0.5)] rounded-lg shadow-2xl px-6 py-4 flex items-center gap-4 animate-in slide-in-from-bottom-5">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] max-w-[calc(100vw-2rem)] bg-[#1A2A1D] border-2 border-[rgba(199,157,69,0.5)] rounded-lg shadow-2xl px-6 py-4 flex items-center gap-4 animate-in slide-in-from-bottom-5 pointer-events-auto">
         <div className="flex items-center gap-3">
           <div className="bg-[rgba(199,157,69,0.2)] rounded-full px-3 py-1.5">
             <span className="text-sm font-semibold text-[#C79D45]">
@@ -102,7 +112,7 @@ export default function BulkActions({ selectedItems, groups, onMove, onDelete, o
 
       {/* Modal de Mover */}
       {showMoveModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-[210] flex items-center justify-center p-4">
           <div className="bg-[#1A2A1D] border-2 border-[rgba(199,157,69,0.5)] rounded-lg shadow-2xl p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold text-[rgba(255,255,255,0.95)] mb-4">
               Mover {selectedItems.length} item(ns)
@@ -167,6 +177,7 @@ export default function BulkActions({ selectedItems, groups, onMove, onDelete, o
         variant="danger"
         isLoading={isDeleting}
       />
-    </>
+    </>,
+    document.body
   )
 }

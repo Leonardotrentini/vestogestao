@@ -426,7 +426,11 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
             </div>
           )}
           {(!normalizedSearch || filteredItems.length > 0) && (
-            <div className="flex-1 overflow-auto">
+            <div
+              className={`flex-1 overflow-auto ${
+                viewMode === 'table' && selectedItems.size > 0 ? 'pb-28' : ''
+              }`}
+            >
               {viewMode === 'table' ? (
                 <BoardTable
                   groups={filteredGroups}
@@ -457,6 +461,16 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
                 />
               )}
             </div>
+          )}
+
+          {viewMode === 'table' && (
+            <BulkActions
+              selectedItems={Array.from(selectedItems)}
+              groups={groups}
+              onMove={handleBulkMove}
+              onDelete={handleBulkDelete}
+              onClearSelection={handleClearSelection}
+            />
           )}
         </div>
       )
@@ -543,7 +557,11 @@ export default function BoardView({ boardId, workspaceId, boardName, boardType =
         </div>
       )}
           {(!normalizedSearch || filteredItems.length > 0) && (
-        <div className="flex-1 overflow-auto">
+        <div
+          className={`flex-1 overflow-auto ${
+            viewMode === 'table' && selectedItems.size > 0 ? 'pb-28' : ''
+          }`}
+        >
           {viewMode === 'table' ? (
             <BoardTable
               groups={filteredGroups}
